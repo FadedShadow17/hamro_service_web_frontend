@@ -56,7 +56,7 @@ export function RegisterForm() {
     <AuthCard title="Create Account" subtitle="Sign up to get started">
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
         {error && (
-          <div className="rounded-lg bg-red-50 p-3 text-sm text-red-600">
+          <div className="rounded-lg bg-red-500/20 border border-red-500/50 p-3 text-sm text-red-400">
             {error}
           </div>
         )}
@@ -65,7 +65,7 @@ export function RegisterForm() {
           <div className="relative">
             <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
               <svg
-                className="h-5 w-5 text-gray-400"
+                className="h-5 w-5 text-white/50"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -81,14 +81,14 @@ export function RegisterForm() {
             <input
               type="text"
               placeholder="Username"
-              className={`w-full rounded-lg border bg-gray-50 py-3 pl-10 pr-4 text-gray-900 placeholder-gray-500 focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-500/20 ${
-                errors.name ? 'border-red-300' : 'border-gray-300'
+              className={`w-full rounded-lg border bg-[#0A2640] py-3 pl-10 pr-4 text-white placeholder-white/50 focus:border-[#69E6A6] focus:outline-none focus:ring-2 focus:ring-[#69E6A6]/20 ${
+                errors.name ? 'border-red-500' : 'border-white/20'
               }`}
               {...registerField('name')}
             />
           </div>
           {errors.name && (
-            <p className="mt-1 text-sm text-red-600">{errors.name.message}</p>
+            <p className="mt-1 text-sm text-red-400">{errors.name.message}</p>
           )}
         </div>
 
@@ -96,7 +96,7 @@ export function RegisterForm() {
           <div className="relative">
             <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
               <svg
-                className="h-5 w-5 text-gray-400"
+                className="h-5 w-5 text-white/50"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -112,14 +112,14 @@ export function RegisterForm() {
             <input
               type="email"
               placeholder="E-mail"
-              className={`w-full rounded-lg border bg-gray-50 py-3 pl-10 pr-4 text-gray-900 placeholder-gray-500 focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-500/20 ${
-                errors.email ? 'border-red-300' : 'border-gray-300'
+              className={`w-full rounded-lg border bg-[#0A2640] py-3 pl-10 pr-4 text-white placeholder-white/50 focus:border-[#69E6A6] focus:outline-none focus:ring-2 focus:ring-[#69E6A6]/20 ${
+                errors.email ? 'border-red-500' : 'border-white/20'
               }`}
               {...registerField('email')}
             />
           </div>
           {errors.email && (
-            <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
+            <p className="mt-1 text-sm text-red-400">{errors.email.message}</p>
           )}
         </div>
 
@@ -127,7 +127,7 @@ export function RegisterForm() {
           <div className="relative">
             <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
               <svg
-                className="h-5 w-5 text-gray-400"
+                className="h-5 w-5 text-white/50"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -143,7 +143,7 @@ export function RegisterForm() {
             <input
               type="tel"
               placeholder="Phone"
-              className="w-full rounded-lg border border-gray-300 bg-gray-50 py-3 pl-10 pr-4 text-gray-900 placeholder-gray-500 focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-500/20"
+              className="w-full rounded-lg border border-white/20 bg-[#0A2640] py-3 pl-10 pr-4 text-white placeholder-white/50 focus:border-[#69E6A6] focus:outline-none focus:ring-2 focus:ring-[#69E6A6]/20"
             />
           </div>
         </div>
@@ -152,7 +152,7 @@ export function RegisterForm() {
           <div className="relative">
             <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
               <svg
-                className="h-5 w-5 text-gray-400"
+                className="h-5 w-5 text-white/50"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -168,8 +168,8 @@ export function RegisterForm() {
             <input
               type={showPassword ? 'text' : 'password'}
               placeholder="Password"
-              className={`w-full rounded-lg border bg-gray-50 py-3 pl-10 pr-10 text-gray-900 placeholder-gray-500 focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-500/20 ${
-                errors.password ? 'border-red-300' : 'border-gray-300'
+              className={`w-full rounded-lg border bg-[#0A2640] py-3 pl-10 pr-10 text-white placeholder-white/50 focus:border-[#69E6A6] focus:outline-none focus:ring-2 focus:ring-[#69E6A6]/20 ${
+                errors.password ? 'border-red-500' : 'border-white/20'
               }`}
               {...registerField('password')}
             />
@@ -180,7 +180,7 @@ export function RegisterForm() {
             >
               {showPassword ? (
                 <svg
-                  className="h-5 w-5 text-gray-400 hover:text-gray-600"
+                  className="h-5 w-5 text-white/50 hover:text-white/70"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -194,7 +194,7 @@ export function RegisterForm() {
                 </svg>
               ) : (
                 <svg
-                  className="h-5 w-5 text-gray-400 hover:text-gray-600"
+                  className="h-5 w-5 text-white/50 hover:text-white/70"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -216,7 +216,7 @@ export function RegisterForm() {
             </button>
           </div>
           {errors.password && (
-            <p className="mt-1 text-sm text-red-600">{errors.password.message}</p>
+            <p className="mt-1 text-sm text-red-400">{errors.password.message}</p>
           )}
         </div>
 
@@ -224,7 +224,7 @@ export function RegisterForm() {
           <div className="relative">
             <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
               <svg
-                className="h-5 w-5 text-gray-400"
+                className="h-5 w-5 text-white/50"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -240,8 +240,8 @@ export function RegisterForm() {
             <input
               type={showConfirmPassword ? 'text' : 'password'}
               placeholder="Confirm password"
-              className={`w-full rounded-lg border bg-gray-50 py-3 pl-10 pr-10 text-gray-900 placeholder-gray-500 focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-500/20 ${
-                errors.confirmPassword ? 'border-red-300' : 'border-gray-300'
+              className={`w-full rounded-lg border bg-[#0A2640] py-3 pl-10 pr-10 text-white placeholder-white/50 focus:border-[#69E6A6] focus:outline-none focus:ring-2 focus:ring-[#69E6A6]/20 ${
+                errors.confirmPassword ? 'border-red-500' : 'border-white/20'
               }`}
               {...registerField('confirmPassword')}
             />
@@ -252,7 +252,7 @@ export function RegisterForm() {
             >
               {showConfirmPassword ? (
                 <svg
-                  className="h-5 w-5 text-gray-400 hover:text-gray-600"
+                  className="h-5 w-5 text-white/50 hover:text-white/70"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -266,7 +266,7 @@ export function RegisterForm() {
                 </svg>
               ) : (
                 <svg
-                  className="h-5 w-5 text-gray-400 hover:text-gray-600"
+                  className="h-5 w-5 text-white/50 hover:text-white/70"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -288,19 +288,19 @@ export function RegisterForm() {
             </button>
           </div>
           {errors.confirmPassword && (
-            <p className="mt-1 text-sm text-red-600">
+            <p className="mt-1 text-sm text-red-400">
               {errors.confirmPassword.message}
             </p>
           )}
         </div>
 
         <div>
-          <label className="mb-2 block text-sm font-medium text-gray-700">
+          <label className="mb-2 block text-sm font-medium text-white/80">
             Role
           </label>
           <select
-            className={`w-full rounded-lg border bg-gray-50 py-3 px-4 text-gray-900 focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-500/20 ${
-              errors.role ? 'border-red-300' : 'border-gray-300'
+            className={`w-full rounded-lg border bg-[#0A2640] py-3 px-4 text-white focus:border-[#69E6A6] focus:outline-none focus:ring-2 focus:ring-[#69E6A6]/20 ${
+              errors.role ? 'border-red-500' : 'border-white/20'
             }`}
             {...registerField('role')}
           >
@@ -309,21 +309,21 @@ export function RegisterForm() {
             <option value="service provider">Service Provider</option>
           </select>
           {errors.role && (
-            <p className="mt-1 text-sm text-red-600">{errors.role.message}</p>
+            <p className="mt-1 text-sm text-red-400">{errors.role.message}</p>
           )}
         </div>
 
         <button
           type="submit"
           disabled={isLoading}
-          className="w-full rounded-lg bg-green-500 py-3 font-semibold text-white transition-colors hover:bg-green-600 disabled:cursor-not-allowed disabled:opacity-50"
+          className="w-full rounded-full bg-[#69E6A6] py-3 font-semibold text-[#0A2640] transition-colors hover:bg-[#5dd195] disabled:cursor-not-allowed disabled:opacity-50"
         >
           {isLoading ? 'Creating account...' : 'SIGN UP'}
         </button>
 
-        <p className="mt-6 text-center text-sm text-gray-600">
+        <p className="mt-6 text-center text-sm text-white/70">
           Already have an account?{' '}
-          <a href="/login" className="font-medium text-green-600 hover:text-green-700">
+          <a href="/login" className="font-medium text-[#69E6A6] hover:text-[#5dd195]">
             Sign in
           </a>
         </p>

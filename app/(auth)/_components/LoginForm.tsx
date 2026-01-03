@@ -60,12 +60,12 @@ export function LoginForm() {
     <AuthCard title="Welcome Back" subtitle="Sign in to continue">
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         {success && (
-          <div className="rounded-lg bg-green-50 p-3 text-sm text-green-600">
+          <div className="rounded-lg bg-[#69E6A6]/20 border border-[#69E6A6]/50 p-3 text-sm text-[#69E6A6]">
             {success}
           </div>
         )}
         {error && (
-          <div className="rounded-lg bg-red-50 p-3 text-sm text-red-600">
+          <div className="rounded-lg bg-red-500/20 border border-red-500/50 p-3 text-sm text-red-400">
             {error}
           </div>
         )}
@@ -90,14 +90,14 @@ export function LoginForm() {
             <input
               type="email"
               placeholder="E-mail"
-              className={`w-full rounded-lg border bg-gray-50 py-3 pl-10 pr-4 text-gray-900 placeholder-gray-500 focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-500/20 ${
-                errors.email ? 'border-red-300' : 'border-gray-300'
+              className={`w-full rounded-lg border bg-[#0A2640] py-3 pl-10 pr-4 text-white placeholder-white/50 focus:border-[#69E6A6] focus:outline-none focus:ring-2 focus:ring-[#69E6A6]/20 ${
+                errors.email ? 'border-red-500' : 'border-white/20'
               }`}
               {...register('email')}
             />
           </div>
           {errors.email && (
-            <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
+            <p className="mt-1 text-sm text-red-400">{errors.email.message}</p>
           )}
         </div>
 
@@ -105,7 +105,7 @@ export function LoginForm() {
           <div className="relative">
             <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
               <svg
-                className="h-5 w-5 text-gray-400"
+                className="h-5 w-5 text-white/50"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -121,8 +121,8 @@ export function LoginForm() {
             <input
               type={showPassword ? 'text' : 'password'}
               placeholder="Password"
-              className={`w-full rounded-lg border bg-gray-50 py-3 pl-10 pr-10 text-gray-900 placeholder-gray-500 focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-500/20 ${
-                errors.password ? 'border-red-300' : 'border-gray-300'
+              className={`w-full rounded-lg border bg-[#0A2640] py-3 pl-10 pr-10 text-white placeholder-white/50 focus:border-[#69E6A6] focus:outline-none focus:ring-2 focus:ring-[#69E6A6]/20 ${
+                errors.password ? 'border-red-500' : 'border-white/20'
               }`}
               {...register('password')}
             />
@@ -133,7 +133,7 @@ export function LoginForm() {
             >
               {showPassword ? (
                 <svg
-                  className="h-5 w-5 text-gray-400 hover:text-gray-600"
+                  className="h-5 w-5 text-white/50 hover:text-white"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -147,7 +147,7 @@ export function LoginForm() {
                 </svg>
               ) : (
                 <svg
-                  className="h-5 w-5 text-gray-400 hover:text-gray-600"
+                  className="h-5 w-5 text-white/50 hover:text-white"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -169,14 +169,14 @@ export function LoginForm() {
             </button>
           </div>
           {errors.password && (
-            <p className="mt-1 text-sm text-red-600">{errors.password.message}</p>
+            <p className="mt-1 text-sm text-red-400">{errors.password.message}</p>
           )}
         </div>
 
         <div className="flex items-center justify-end">
           <a
             href="/forgot-password"
-            className="text-sm font-medium text-green-600 hover:text-green-700"
+            className="text-sm font-medium text-[#69E6A6] hover:text-[#5dd195]"
           >
             Forgot password?
           </a>
@@ -185,38 +185,38 @@ export function LoginForm() {
         <button
           type="submit"
           disabled={isLoading}
-          className="w-full rounded-lg bg-green-500 py-3 font-semibold text-white transition-colors hover:bg-green-600 disabled:cursor-not-allowed disabled:opacity-50"
+          className="w-full rounded-full bg-[#69E6A6] py-3 font-semibold text-[#0A2640] transition-colors hover:bg-[#5dd195] disabled:cursor-not-allowed disabled:opacity-50"
         >
           {isLoading ? 'Logging in...' : 'LOGIN'}
         </button>
 
         <div className="relative my-6">
           <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-gray-300"></div>
+            <div className="w-full border-t border-white/20"></div>
           </div>
           <div className="relative flex justify-center text-sm">
-            <span className="bg-[#FFF5F5] px-2 text-gray-500">OR</span>
+            <span className="bg-[#1C3D5B] px-2 text-white/50">OR</span>
           </div>
         </div>
 
         <div className="flex gap-4">
           <button
             type="button"
-            className="flex flex-1 items-center justify-center rounded-full border border-gray-300 bg-white p-3 transition-colors hover:bg-gray-50"
+            className="flex flex-1 items-center justify-center rounded-full border border-white/20 bg-[#0A2640] p-3 transition-colors hover:bg-white/10"
           >
-            <span className="text-xl font-bold text-gray-800">f</span>
+            <span className="text-xl font-bold text-white">f</span>
           </button>
           <button
             type="button"
-            className="flex flex-1 items-center justify-center rounded-full border border-gray-300 bg-white p-3 transition-colors hover:bg-gray-50"
+            className="flex flex-1 items-center justify-center rounded-full border border-white/20 bg-[#0A2640] p-3 transition-colors hover:bg-white/10"
           >
-            <span className="text-xl font-bold text-gray-800">G</span>
+            <span className="text-xl font-bold text-white">G</span>
           </button>
         </div>
 
-        <p className="mt-6 text-center text-sm text-gray-600">
+        <p className="mt-6 text-center text-sm text-white/70">
           Don't have an account?{' '}
-          <a href="/register" className="font-medium text-green-600 hover:text-green-700">
+          <a href="/register" className="font-medium text-[#69E6A6] hover:text-[#5dd195]">
             Sign up
           </a>
         </p>

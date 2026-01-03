@@ -28,10 +28,11 @@ export interface ApiResponse {
 
 export async function register(data: RegisterRequest): Promise<ApiResponse> {
   try {
-    return await http<ApiResponse>('/api/auth/register', {
+    const response = await http<{ message: string; user: any }>('/api/auth/register', {
       method: 'POST',
       body: data,
     });
+    return { message: response.message };
   } catch (error) {
     if (error instanceof HttpError) {
       throw error;
@@ -42,10 +43,14 @@ export async function register(data: RegisterRequest): Promise<ApiResponse> {
 
 export async function login(data: LoginRequest): Promise<AuthResponse> {
   try {
-    return await http<AuthResponse>('/api/auth/login', {
+    const response = await http<{ message: string; token: string; user: User }>('/api/auth/login', {
       method: 'POST',
       body: data,
     });
+    return {
+      token: response.token,
+      user: response.user,
+    };
   } catch (error) {
     if (error instanceof HttpError) {
       throw error;

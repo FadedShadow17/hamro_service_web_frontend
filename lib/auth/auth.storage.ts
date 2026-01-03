@@ -1,7 +1,10 @@
 export interface User {
+  id: string;
   name: string;
   email: string;
   role: 'user' | 'service provider';
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 const TOKEN_KEY = 'auth_token';
