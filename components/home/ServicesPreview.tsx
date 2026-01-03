@@ -1,7 +1,6 @@
-import Link from 'next/link';
 import { services } from '@/lib/data/services';
 import { Button } from '@/components/ui/Button';
-import { Card } from '@/components/ui/Card';
+import { ServiceCard } from '@/components/services/ServiceCard';
 
 export function ServicesPreview() {
   const featuredServices = services.slice(0, 6);
@@ -20,27 +19,7 @@ export function ServicesPreview() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {featuredServices.map((service) => (
-            <Card key={service.id} className="p-6 hover:shadow-xl transition-all duration-300 group">
-              <div className="text-5xl mb-4">{service.icon}</div>
-              <h3 className="text-xl font-semibold text-[#0A2640] mb-2 group-hover:text-[#69E6A6] transition-colors">
-                {service.title}
-              </h3>
-              <p className="text-gray-600 mb-4 text-sm">{service.shortDescription}</p>
-              {service.startingPrice && (
-                <p className="text-[#0A2640] font-semibold mb-4">
-                  Starting at Rs. {service.startingPrice.toLocaleString()}
-                </p>
-              )}
-              <Link
-                href={`/services/${service.slug}`}
-                className="text-[#69E6A6] font-semibold hover:underline inline-flex items-center group-hover:gap-2 transition-all"
-              >
-                Book Now
-                <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              </Link>
-            </Card>
+            <ServiceCard key={service.id} service={service} />
           ))}
         </div>
 
