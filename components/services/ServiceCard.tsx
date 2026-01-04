@@ -97,13 +97,13 @@ export function ServiceCard({ service }: ServiceCardProps) {
       {/* Actions */}
       <div className="flex gap-2 mt-auto pt-4 border-t border-gray-100">
         <Link
-          href={bookHref}
+          href="/login"
           className="flex-1 text-center px-4 py-2.5 bg-[#69E6A6] text-[#0A2640] rounded-lg font-semibold hover:bg-[#5dd195] transition-colors text-sm shadow-sm hover:shadow-md"
         >
           Book Now
         </Link>
         <Link
-          href={`/services/${service.slug}`}
+          href="/login"
           className="px-4 py-2.5 border border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 hover:border-[#69E6A6] hover:text-[#0A2640] transition-colors text-sm"
         >
           Details

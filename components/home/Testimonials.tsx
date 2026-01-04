@@ -1,21 +1,21 @@
 const testimonials = [
   {
     name: 'Rajesh Shrestha',
-    role: 'Homeowner, Kathmandu',
+    role: 'Homeowner, Kamalpokhari',
     content: 'Excellent service! The plumber arrived on time and fixed the issue quickly. Very professional and reasonably priced. Highly recommend Hamro Service!',
     rating: 5,
     service: 'Plumbing Repair',
   },
   {
     name: 'Sita Maharjan',
-    role: 'Business Owner, Lalitpur',
+    role: 'Business Owner, Dillibazar',
     content: 'I\'ve used Hamro Service multiple times for cleaning and electrical work. Always reliable and the quality is top-notch. The booking process is so convenient!',
     rating: 5,
     service: 'Cleaning & Electrical',
   },
   {
     name: 'Amit Kumar',
-    role: 'Property Manager, Bhaktapur',
+    role: 'Property Manager, Boudha',
     content: 'Great platform for finding trusted professionals. The booking process is simple and the service providers are skilled. Perfect for managing multiple properties.',
     rating: 5,
     service: 'Multiple Services',

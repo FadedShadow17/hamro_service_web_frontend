@@ -24,7 +24,7 @@ export function ServicesPreview() {
         </div>
 
         <div className="text-center mt-12">
-          <Button variant="primary" href="/services">
+          <Button variant="primary" href="/login">
             View All Services
           </Button>
         </div>

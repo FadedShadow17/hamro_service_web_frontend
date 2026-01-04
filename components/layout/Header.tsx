@@ -12,10 +12,30 @@ export function Header() {
   const router = useRouter();
   const [authenticated, setAuthenticated] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isAtTop, setIsAtTop] = useState(true);
 
-  // Section IDs for scrollspy (only on home page)
+  // Section IDs for scrollspy (always call hook, but use conditionally)
   const sectionIds = ['home', 'services', 'how-it-works', 'why-us', 'testimonials'];
-  const activeSection = pathname === '/' ? useScrollSpy(sectionIds, 100) : '';
+  const scrollSpyResult = useScrollSpy(sectionIds, 100);
+  const activeSection = pathname === '/' ? scrollSpyResult : '';
+
+  // Track scroll position to determine if at top of page
+  useEffect(() => {
+    if (pathname !== '/') {
+      setIsAtTop(false);
+      return;
+    }
+
+    const handleScroll = () => {
+      setIsAtTop(window.scrollY < 100);
+    };
+
+    // Check initial position
+    handleScroll();
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [pathname]);
 
   // Check authentication only on client side to avoid hydration mismatch
   useEffect(() => {
@@ -46,6 +66,16 @@ export function Header() {
       e.preventDefault();
       handleSectionNavigation(item.href, router, pathname);
       setMobileMenuOpen(false);
+    } else if (item.href === '/' && item.sectionId === 'home') {
+      // Handle Home link - scroll to top if on home page, otherwise navigate
+      if (pathname === '/') {
+        e.preventDefault();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        setMobileMenuOpen(false);
+      } else {
+        // Navigate to home page - the scroll will happen on page load
+        setMobileMenuOpen(false);
+      }
     } else {
       setMobileMenuOpen(false);
     }
@@ -54,6 +84,10 @@ export function Header() {
   const isNavActive = (item: typeof navItems[0]) => {
     if (item.type === 'section') {
       return pathname === '/' && activeSection === item.sectionId;
+    }
+    // For Home link, only active when at top of page
+    if (item.href === '/' && item.sectionId === 'home') {
+      return pathname === '/' && isAtTop;
     }
     return pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href));
   };

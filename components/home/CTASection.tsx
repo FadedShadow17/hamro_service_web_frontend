@@ -24,7 +24,7 @@ export function CTASection() {
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             <Link
-              href="/services"
+              href="/login"
               className="group relative px-10 py-5 bg-gradient-to-r from-[#69E6A6] to-[#4ADE80] text-[#0A2640] rounded-xl font-bold text-lg shadow-2xl shadow-[#69E6A6]/40 hover:shadow-[#69E6A6]/60 transition-all duration-300 hover:scale-105"
             >
               <span className="relative z-10 flex items-center">
@@ -36,7 +36,7 @@ export function CTASection() {
             </Link>
             
             <Link
-              href="/contact"
+              href="/login"
               className="px-10 py-5 bg-transparent border-2 border-white/30 text-white rounded-xl font-bold text-lg hover:bg-white/10 hover:border-white/50 transition-all duration-300"
             >
               Contact Us
