@@ -1,14 +1,19 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { isAuthenticated } from '@/lib/auth/auth.storage';
 
 export function Header() {
   const pathname = usePathname();
-  const authenticated = isAuthenticated();
+  const [authenticated, setAuthenticated] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  // Check authentication only on client side to avoid hydration mismatch
+  useEffect(() => {
+    setAuthenticated(isAuthenticated());
+  }, []);
 
   const navLinks = [
     { href: '/', label: 'Home' },

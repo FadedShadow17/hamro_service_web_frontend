@@ -40,7 +40,14 @@ export function LoginForm() {
       const response = await login(data);
       setToken(response.token);
       setUser(response.user);
-      router.push('/dashboard');
+      
+      // Check for next query param to redirect after login
+      const next = searchParams.get('next');
+      if (next) {
+        router.push(decodeURIComponent(next));
+      } else {
+        router.push('/dashboard');
+      }
     } catch (err) {
       if (err instanceof HttpError) {
         if (err.status === 401) {
