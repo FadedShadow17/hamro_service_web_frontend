@@ -8,11 +8,21 @@ import { CTASection } from '@/components/home/CTASection';
 export default function Home() {
   return (
     <>
-      <Hero />
-      <CategorySection />
-      <TrustSection />
-      <HowItWorksSection />
-      <Testimonials />
+      <section id="home" className="scroll-mt-20">
+        <Hero />
+      </section>
+      <section id="services" className="scroll-mt-20">
+        <CategorySection />
+      </section>
+      <section id="how-it-works" className="scroll-mt-20">
+        <HowItWorksSection />
+      </section>
+      <section id="why-us" className="scroll-mt-20">
+        <TrustSection />
+      </section>
+      <section id="testimonials" className="scroll-mt-20">
+        <Testimonials />
+      </section>
       <CTASection />
     </>
   );

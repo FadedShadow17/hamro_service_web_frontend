@@ -2,26 +2,61 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { isAuthenticated } from '@/lib/auth/auth.storage';
+import { useScrollSpy } from '@/hooks/useScrollSpy';
+import { scrollToSection, handleSectionNavigation } from '@/utils/scrollToSection';
 
 export function Header() {
   const pathname = usePathname();
+  const router = useRouter();
   const [authenticated, setAuthenticated] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  // Section IDs for scrollspy (only on home page)
+  const sectionIds = ['home', 'services', 'how-it-works', 'why-us', 'testimonials'];
+  const activeSection = pathname === '/' ? useScrollSpy(sectionIds, 100) : '';
 
   // Check authentication only on client side to avoid hydration mismatch
   useEffect(() => {
     setAuthenticated(isAuthenticated());
   }, []);
 
-  const navLinks = [
-    { href: '/', label: 'Home' },
-    { href: '/services', label: 'Services' },
-    { href: '/about', label: 'About' },
-    { href: '/blogs', label: 'Blogs' },
-    { href: '/contact', label: 'Contact' },
+  // Handle hash navigation on page load
+  useEffect(() => {
+    if (pathname === '/' && typeof window !== 'undefined') {
+      const hash = window.location.hash.substring(1);
+      if (hash && sectionIds.includes(hash)) {
+        setTimeout(() => scrollToSection(hash), 300);
+      }
+    }
+  }, [pathname, sectionIds]);
+
+  // Navigation items configuration
+  const navItems = [
+    { href: '/', label: 'Home', type: 'route', sectionId: 'home' },
+    { href: '#services', label: 'Services', type: 'section', sectionId: 'services' },
+    { href: '#how-it-works', label: 'How it Works', type: 'section', sectionId: 'how-it-works' },
+    { href: '#why-us', label: 'Why Us', type: 'section', sectionId: 'why-us' },
+    { href: '#testimonials', label: 'Testimonials', type: 'section', sectionId: 'testimonials' },
   ];
+
+  const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, item: typeof navItems[0]) => {
+    if (item.type === 'section') {
+      e.preventDefault();
+      handleSectionNavigation(item.href, router, pathname);
+      setMobileMenuOpen(false);
+    } else {
+      setMobileMenuOpen(false);
+    }
+  };
+
+  const isNavActive = (item: typeof navItems[0]) => {
+    if (item.type === 'section') {
+      return pathname === '/' && activeSection === item.sectionId;
+    }
+    return pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href));
+  };
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-[#0A2640] border-b border-white/10 shadow-lg">
@@ -39,19 +74,20 @@ export function Header() {
 
           {/* Desktop Navigation Links */}
           <nav className="hidden lg:flex items-center space-x-8">
-            {navLinks.map((link) => {
-              const isActive = pathname === link.href || (link.href !== '/' && pathname.startsWith(link.href));
+            {navItems.map((item) => {
+              const isActive = isNavActive(item);
               return (
                 <Link
-                  key={link.href}
-                  href={link.href}
+                  key={item.href}
+                  href={item.href}
+                  onClick={(e) => handleNavClick(e, item)}
                   className={`text-sm font-medium transition-colors relative ${
                     isActive
                       ? 'text-[#69E6A6]'
                       : 'text-white/80 hover:text-white'
                   }`}
                 >
-                  {link.label}
+                  {item.label}
                   {isActive && (
                     <span className="absolute -bottom-1 left-0 right-0 h-0.5 bg-[#69E6A6]"></span>
                   )}
@@ -109,20 +145,20 @@ export function Header() {
         {mobileMenuOpen && (
           <div className="lg:hidden absolute top-20 left-0 right-0 bg-[#0A2640] border-t border-white/10 shadow-xl">
             <nav className="container mx-auto px-4 py-6 space-y-4">
-              {navLinks.map((link) => {
-                const isActive = pathname === link.href || (link.href !== '/' && pathname.startsWith(link.href));
+              {navItems.map((item) => {
+                const isActive = isNavActive(item);
                 return (
                   <Link
-                    key={link.href}
-                    href={link.href}
-                    onClick={() => setMobileMenuOpen(false)}
+                    key={item.href}
+                    href={item.href}
+                    onClick={(e) => handleNavClick(e, item)}
                     className={`block py-2 text-base font-medium transition-colors ${
                       isActive
                         ? 'text-[#69E6A6]'
                         : 'text-white/80 hover:text-white'
                     }`}
                   >
-                    {link.label}
+                    {item.label}
                   </Link>
                 );
               })}
