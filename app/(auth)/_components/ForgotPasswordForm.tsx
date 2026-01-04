@@ -48,7 +48,7 @@ export function ForgotPasswordForm() {
   };
 
   return (
-    <AuthCard title="Forgot Password" subtitle="Enter your email to reset password">
+    <AuthCard title="Forgot Password" subtitle="Enter your email to reset password" illustration="forgot">
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         {error && (
           <div className="rounded-lg bg-red-500/20 border border-red-500/50 p-3 text-sm text-red-400">

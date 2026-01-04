@@ -53,8 +53,8 @@ export function RegisterForm() {
   };
 
   return (
-    <AuthCard title="Create Account" subtitle="Sign up to get started">
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+    <AuthCard title="Create Account" subtitle="Sign up to get started" illustration="register">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         {error && (
           <div className="rounded-lg bg-red-500/20 border border-red-500/50 p-3 text-sm text-red-400">
             {error}
