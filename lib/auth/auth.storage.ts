@@ -2,9 +2,24 @@ export interface User {
   id: string;
   name: string;
   email: string;
-  role: 'user' | 'service provider';
+  role: 'user' | 'provider';
   createdAt?: Date;
   updatedAt?: Date;
+}
+
+export const USER_ROLES = {
+  USER: 'user',
+  PROVIDER: 'provider',
+} as const;
+
+export type UserRole = typeof USER_ROLES[keyof typeof USER_ROLES];
+
+export function isUser(user: User | null): boolean {
+  return user?.role === USER_ROLES.USER;
+}
+
+export function isProvider(user: User | null): boolean {
+  return user?.role === USER_ROLES.PROVIDER;
 }
 
 const TOKEN_KEY = 'auth_token';

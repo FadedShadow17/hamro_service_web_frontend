@@ -52,6 +52,9 @@ export function LoginForm() {
       if (err instanceof HttpError) {
         if (err.status === 401) {
           setError('Invalid email or password');
+        } else if (err.status === 0) {
+          // Network/connection error
+          setError(err.message || 'Cannot connect to server. Please ensure the backend is running.');
         } else {
           setError(err.message || 'Login failed');
         }

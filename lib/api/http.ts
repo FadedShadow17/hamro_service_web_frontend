@@ -26,15 +26,20 @@ export async function http<T = unknown>(
   endpoint: string,
   options: RequestOptions = {}
 ): Promise<T> {
-  const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || '';
+  // Get base URL - default to localhost:4000 for development
+  const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:4000';
   const url = `${baseUrl}${endpoint}`;
 
   const { method = 'GET', body, headers = {}, ...restOptions } = options;
 
+  // Get auth token if available
+  const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
+  
   const config: RequestInit = {
     method,
     headers: {
       'Content-Type': 'application/json',
+      ...(token && { Authorization: `Bearer ${token}` }),
       ...headers,
     },
     ...restOptions,
@@ -46,10 +51,16 @@ export async function http<T = unknown>(
 
   try {
     const response = await fetch(url, config);
-    const data = await response.json().catch(() => ({}));
+    
+    // Handle non-JSON responses
+    let data: any = {};
+    const contentType = response.headers.get('content-type');
+    if (contentType && contentType.includes('application/json')) {
+      data = await response.json().catch(() => ({}));
+    }
 
     if (!response.ok) {
-      const errorMessage = data.message || data.error || `HTTP ${response.status}`;
+      const errorMessage = data.message || data.error || `HTTP ${response.status}: ${response.statusText}`;
       const errors = data.errors || data.validationErrors;
 
       throw new HttpError(response.status, errorMessage, errors);
@@ -59,6 +70,14 @@ export async function http<T = unknown>(
   } catch (error) {
     if (error instanceof HttpError) {
       throw error;
+    }
+
+    // Better error messages for network errors
+    if (error instanceof TypeError && (error.message.includes('fetch') || error.message.includes('Failed to fetch'))) {
+      const errorMsg = baseUrl 
+        ? `Failed to connect to server at ${baseUrl}. Please ensure the backend is running.`
+        : 'Failed to connect to server. Please check your API configuration.';
+      throw new HttpError(0, errorMsg);
     }
 
     throw new HttpError(500, error instanceof Error ? error.message : 'Network error');

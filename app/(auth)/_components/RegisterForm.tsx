@@ -306,7 +306,7 @@ export function RegisterForm() {
           >
             <option value="">Select a role</option>
             <option value="user">User</option>
-            <option value="service provider">Service Provider</option>
+            <option value="provider">Service Provider</option>
           </select>
           {errors.role && (
             <p className="mt-1 text-sm text-red-400">{errors.role.message}</p>

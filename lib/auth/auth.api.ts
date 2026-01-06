@@ -5,7 +5,7 @@ export interface RegisterRequest {
   name: string;
   email: string;
   password: string;
-  role: 'user' | 'service provider';
+  role: 'user' | 'provider';
 }
 
 export interface LoginRequest {
@@ -74,6 +74,20 @@ export async function forgotPassword(data: ForgotPasswordRequest): Promise<ApiRe
       throw error;
     }
     throw new HttpError(500, 'Request failed');
+  }
+}
+
+export async function getMe(): Promise<User> {
+  try {
+    const response = await http<{ user: User }>('/api/auth/me', {
+      method: 'GET',
+    });
+    return response.user;
+  } catch (error) {
+    if (error instanceof HttpError) {
+      throw error;
+    }
+    throw new HttpError(500, 'Failed to get user info');
   }
 }
 
