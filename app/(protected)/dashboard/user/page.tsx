@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import { getUser, isUser } from '@/lib/auth/auth.storage';
 import { RouteGuard } from '@/components/auth/RouteGuard';
 import { getServices, type Service } from '@/lib/api/services.api';
-import { getServiceCategories, type ServiceCategory } from '@/lib/api/service-categories.api';
 import { getMyBookings, type Booking } from '@/lib/api/bookings.api';
 import { ServicesGrid } from '@/components/services/ServicesGrid';
 import Link from 'next/link';
@@ -14,12 +13,10 @@ export default function UserDashboardPage() {
   const router = useRouter();
   const [user, setUser] = useState<ReturnType<typeof getUser>>(null);
   const [services, setServices] = useState<Service[]>([]);
-  const [categories, setCategories] = useState<ServiceCategory[]>([]);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>('');
   const [mounted, setMounted] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
@@ -37,17 +34,60 @@ export default function UserDashboardPage() {
     try {
       setLoading(true);
       setError('');
-      const [servicesData, categoriesData, bookingsData] = await Promise.all([
-        getServices(true),
-        getServiceCategories(true).catch(() => []), // Categories are optional
-        getMyBookings().catch(() => []), // Bookings are optional
-      ]);
+      
+      // Fetch services - this is critical, so we'll show error if it fails
+      let servicesData: Service[] = [];
+      let servicesError: string | null = null;
+      
+      try {
+        servicesData = await getServices(true);
+        console.log('Services loaded:', servicesData.length, servicesData);
+      } catch (servicesErr) {
+        console.error('Error loading services:', servicesErr);
+        servicesError = servicesErr instanceof Error ? servicesErr.message : 'Failed to load services';
+        
+        // Try without active filter as fallback
+        try {
+          servicesData = await getServices();
+          console.log('Services loaded (all):', servicesData.length, servicesData);
+          servicesError = null; // Clear error if fallback succeeds
+        } catch (fallbackErr) {
+          console.error('Error loading all services:', fallbackErr);
+          // Keep the original error
+        }
+      }
+
+      // If services failed to load, show error but continue loading other data
+      if (servicesError && servicesData.length === 0) {
+        setError(servicesError);
+      }
+
+      // Fetch bookings (optional - don't block on error)
+      let bookingsData: Booking[] = [];
+      try {
+        bookingsData = await getMyBookings();
+        console.log('Bookings loaded:', bookingsData.length);
+      } catch (bookingsErr) {
+        console.warn('Bookings not available (this is normal for new users):', bookingsErr);
+        // Silently fail - bookings are optional and might fail for new users
+      }
+
+      // Always set the data, even if some parts failed
       setServices(servicesData);
-      setCategories(categoriesData);
       setBookings(bookingsData);
+      
+      // Only show error if services couldn't be loaded
+      if (servicesError && servicesData.length === 0) {
+        setError(servicesError);
+      } else if (servicesError) {
+        // Services loaded with fallback, clear any previous error
+        setError('');
+      }
     } catch (err) {
-      setError('Failed to load data. Please try again.');
-      console.error(err);
+      // This should only catch unexpected errors
+      const errorMessage = err instanceof Error ? err.message : 'Failed to load data. Please try again.';
+      setError(errorMessage);
+      console.error('Unexpected load data error:', err);
     } finally {
       setLoading(false);
     }
@@ -55,11 +95,6 @@ export default function UserDashboardPage() {
 
   const filteredServices = useMemo(() => {
     let filtered = services;
-
-    // Filter by category
-    if (selectedCategory !== 'all') {
-      filtered = filtered.filter((service) => service.categoryId === selectedCategory);
-    }
 
     // Filter by search query
     if (searchQuery.trim()) {
@@ -72,7 +107,7 @@ export default function UserDashboardPage() {
     }
 
     return filtered;
-  }, [services, selectedCategory, searchQuery]);
+  }, [services, searchQuery]);
 
   const pendingBookings = bookings.filter((b) => b.status === 'PENDING' || b.status === 'CONFIRMED');
   const completedBookings = bookings.filter((b) => b.status === 'COMPLETED');
@@ -96,7 +131,7 @@ export default function UserDashboardPage() {
             {/* Header Section */}
             <div className="mb-8">
               <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">
-                Welcome back, {user.name}! 
+                Welcome back, {user.name}! 👋
               </h1>
               <p className="text-white/70">Browse and book services for your home</p>
             </div>
@@ -144,11 +179,11 @@ export default function UserDashboardPage() {
               <div className="rounded-2xl bg-gradient-to-br from-[#9B59B6]/20 to-[#9B59B6]/5 p-6 border border-[#9B59B6]/30">
                 <div className="w-12 h-12 rounded-xl bg-[#9B59B6] flex items-center justify-center mb-2">
                   <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                 </div>
-                <h3 className="text-white font-bold text-2xl mb-1">{categories.length}</h3>
-                <p className="text-white/70 text-sm">Categories</p>
+                <h3 className="text-white font-bold text-2xl mb-1">Rs. {services.reduce((sum, s) => sum + (s.basePrice || 0), 0).toLocaleString()}</h3>
+                <p className="text-white/70 text-sm">Total Value</p>
               </div>
             </div>
 
@@ -217,45 +252,14 @@ export default function UserDashboardPage() {
                     className="w-full pl-12 pr-4 py-3 rounded-xl bg-[#1C3D5B] border border-white/10 text-white placeholder-white/50 focus:border-[#69E6A6] focus:outline-none focus:ring-2 focus:ring-[#69E6A6]/20 transition-all"
                   />
                 </div>
-
-                {/* Category Filter */}
-                {categories.length > 0 && (
-                  <div className="flex flex-wrap gap-2">
-                    <button
-                      onClick={() => setSelectedCategory('all')}
-                      className={`px-4 py-2 rounded-lg font-medium transition-all ${
-                        selectedCategory === 'all'
-                          ? 'bg-[#69E6A6] text-[#0A2640]'
-                          : 'bg-[#1C3D5B] text-white/70 hover:text-white hover:bg-[#1C3D5B]/80 border border-white/10'
-                      }`}
-                    >
-                      All Services
-                    </button>
-                    {categories.map((category) => (
-                      <button
-                        key={category.id}
-                        onClick={() => setSelectedCategory(category.id)}
-                        className={`px-4 py-2 rounded-lg font-medium transition-all ${
-                          selectedCategory === category.id
-                            ? 'bg-[#69E6A6] text-[#0A2640]'
-                            : 'bg-[#1C3D5B] text-white/70 hover:text-white hover:bg-[#1C3D5B]/80 border border-white/10'
-                        }`}
-                      >
-                        {category.icon && <span className="mr-2">{category.icon}</span>}
-                        {category.name}
-                      </button>
-                    ))}
-                  </div>
-                )}
               </div>
 
               {/* Results Count */}
               {!loading && (
                 <div className="mb-4">
                   <p className="text-white/70 text-sm">
-                    Showing <span className="font-semibold text-white">{filteredServices.length}</span> service
-                    {filteredServices.length !== 1 ? 's' : ''}
-                    {selectedCategory !== 'all' && ` in ${categories.find(c => c.id === selectedCategory)?.name || 'category'}`}
+                    Showing <span className="font-semibold text-white">{filteredServices.length}</span> of <span className="font-semibold text-white">{services.length}</span> service
+                    {services.length !== 1 ? 's' : ''}
                     {searchQuery && ` matching "${searchQuery}"`}
                   </p>
                 </div>
@@ -273,13 +277,30 @@ export default function UserDashboardPage() {
                 </div>
               ) : error ? (
                 <div className="rounded-2xl bg-red-500/20 border border-red-500/50 p-6 text-center">
-                  <p className="text-red-400 mb-4">{error}</p>
+                  <p className="text-red-400 mb-2 font-semibold">Error loading services</p>
+                  <p className="text-red-300 text-sm mb-4">{error}</p>
+                  <p className="text-white/50 text-xs mb-4">
+                    Make sure the backend server is running and the database has been seeded.
+                  </p>
                   <button
                     onClick={loadData}
                     className="px-6 py-2 bg-red-500/20 hover:bg-red-500/30 border border-red-500/50 rounded-lg text-red-400 transition-colors"
                   >
                     Try Again
                   </button>
+                </div>
+              ) : filteredServices.length === 0 && services.length === 0 ? (
+                <div className="rounded-2xl bg-[#1C3D5B] border border-white/10 p-12 text-center">
+                  <svg className="w-16 h-16 text-white/30 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  </svg>
+                  <p className="text-white/70 text-lg mb-2">No services available</p>
+                  <p className="text-white/50 text-sm mb-4">
+                    The database might not have any services yet. Please seed the database or contact support.
+                  </p>
+                  <p className="text-white/40 text-xs">
+                    Total services in database: {services.length}
+                  </p>
                 </div>
               ) : filteredServices.length === 0 ? (
                 <div className="rounded-2xl bg-[#1C3D5B] border border-white/10 p-12 text-center">
@@ -288,19 +309,18 @@ export default function UserDashboardPage() {
                   </svg>
                   <p className="text-white/70 text-lg mb-2">No services found</p>
                   <p className="text-white/50 text-sm">
-                    {searchQuery || selectedCategory !== 'all'
-                      ? 'Try adjusting your search or filters'
+                    {searchQuery
+                      ? 'Try adjusting your search'
                       : 'No services available at the moment'}
                   </p>
-                  {(searchQuery || selectedCategory !== 'all') && (
+                  {searchQuery && (
                     <button
                       onClick={() => {
                         setSearchQuery('');
-                        setSelectedCategory('all');
                       }}
                       className="mt-4 px-6 py-2 bg-[#69E6A6]/20 hover:bg-[#69E6A6]/30 border border-[#69E6A6]/50 rounded-lg text-[#69E6A6] transition-colors"
                     >
-                      Clear Filters
+                      Clear Search
                     </button>
                   )}
                 </div>

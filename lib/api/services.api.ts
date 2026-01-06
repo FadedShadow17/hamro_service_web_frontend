@@ -2,11 +2,12 @@ import { http, HttpError } from './http';
 
 export interface Service {
   id: string;
-  categoryId: string;
   name: string;
+  slug: string;
   description: string;
-  image?: string;
-  active: boolean;
+  icon: string;
+  basePrice: number;
+  isActive: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -23,10 +24,14 @@ export interface AvailableProvider {
 export async function getServices(active?: boolean): Promise<Service[]> {
   try {
     const query = active !== undefined ? `?active=${active}` : '';
-    const response = await http<{ services: Service[] }>(`/api/services${query}`, {
+    const response = await http<{ success: boolean; data: Service[] } | { services: Service[] }>(`/api/services${query}`, {
       method: 'GET',
     });
-    return response.services;
+    // Support both new format (success/data) and old format (services) for backward compatibility
+    if ('success' in response && 'data' in response) {
+      return response.data;
+    }
+    return (response as { services: Service[] }).services;
   } catch (error) {
     if (error instanceof HttpError) {
       throw error;
