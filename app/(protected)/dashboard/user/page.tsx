@@ -77,6 +77,7 @@ export default function UserDashboardPage() {
   const pendingBookings = bookings.filter((b) => b.status === 'PENDING' || b.status === 'CONFIRMED');
   const completedBookings = bookings.filter((b) => b.status === 'COMPLETED');
 
+  // Show loading state until mounted and user is verified
   if (!mounted || !user || !isUser(user)) {
     return (
       <RouteGuard requireAuth redirectTo="/login">
@@ -95,7 +96,7 @@ export default function UserDashboardPage() {
             {/* Header Section */}
             <div className="mb-8">
               <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">
-                Welcome back, {user.name}! 👋
+                Welcome back, {user.name}! 
               </h1>
               <p className="text-white/70">Browse and book services for your home</p>
             </div>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { isAuthenticated } from '@/lib/auth/auth.storage';
 
@@ -13,9 +13,17 @@ interface RouteGuardProps {
 export function RouteGuard({ children, requireAuth = false, redirectTo }: RouteGuardProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const authenticated = isAuthenticated();
+  const [mounted, setMounted] = useState(false);
+  const [authenticated, setAuthenticated] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
+    setAuthenticated(isAuthenticated());
+  }, []);
+
+  useEffect(() => {
+    if (!mounted) return;
+
     if (requireAuth && !authenticated) {
       // Preserve the intended destination in the next query param
       const currentPath = window.location.pathname;
@@ -24,9 +32,13 @@ export function RouteGuard({ children, requireAuth = false, redirectTo }: RouteG
     } else if (!requireAuth && authenticated && redirectTo) {
       router.push(redirectTo);
     }
-  }, [authenticated, requireAuth, redirectTo, router]);
+  }, [mounted, authenticated, requireAuth, redirectTo, router]);
 
-  // Show nothing while redirecting
+  // Show nothing while checking auth or redirecting
+  if (!mounted) {
+    return null;
+  }
+
   if (requireAuth && !authenticated) {
     return null;
   }

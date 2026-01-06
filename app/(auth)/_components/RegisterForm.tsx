@@ -22,6 +22,9 @@ export function RegisterForm() {
     formState: { errors },
   } = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
+    defaultValues: {
+      role: '',
+    },
   });
 
   const onSubmit = async (data: RegisterFormData) => {
@@ -296,18 +299,57 @@ export function RegisterForm() {
 
         <div>
           <label className="mb-2 block text-sm font-medium text-white/80">
-            Role
+            I want to
           </label>
-          <select
-            className={`w-full rounded-lg border bg-[#0A2640] py-3 px-4 text-white focus:border-[#69E6A6] focus:outline-none focus:ring-2 focus:ring-[#69E6A6]/20 ${
-              errors.role ? 'border-red-500' : 'border-white/20'
-            }`}
-            {...registerField('role')}
-          >
-            <option value="">Select a role</option>
-            <option value="user">User</option>
-            <option value="provider">Service Provider</option>
-          </select>
+          <div className="relative">
+            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+              <svg
+                className="h-5 w-5 text-white/50"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                />
+              </svg>
+            </div>
+            <select
+              className={`w-full rounded-lg border bg-[#0A2640] py-3 pl-10 pr-10 text-white appearance-none cursor-pointer transition-all focus:border-[#69E6A6] focus:outline-none focus:ring-2 focus:ring-[#69E6A6]/20 hover:border-white/40 ${
+                errors.role ? 'border-red-500' : 'border-white/20'
+              }`}
+              {...registerField('role')}
+              defaultValue=""
+            >
+              <option value="" disabled hidden className="bg-[#1C3D5B] text-white/70">
+                Select a role
+              </option>
+              <option value="user" className="bg-[#1C3D5B] text-white">
+                Book Services (User)
+              </option>
+              <option value="provider" className="bg-[#1C3D5B] text-white">
+                Provide Services (Service Provider)
+              </option>
+            </select>
+            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+              <svg
+                className="h-5 w-5 text-white/50"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M19 9l-7 7-7-7"
+                />
+              </svg>
+            </div>
+          </div>
           {errors.role && (
             <p className="mt-1 text-sm text-red-400">{errors.role.message}</p>
           )}
