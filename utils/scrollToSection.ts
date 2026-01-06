@@ -1,18 +1,37 @@
+// Prevent multiple simultaneous scrolls
+let isScrolling = false;
+
 /**
  * Scrolls to a section on the page smoothly
  * @param sectionId - The ID of the section to scroll to (without #)
  * @param offset - Offset from top to account for fixed header (default: 80)
  */
 export function scrollToSection(sectionId: string, offset: number = 80): void {
+  // Prevent multiple simultaneous scrolls
+  if (isScrolling) {
+    return;
+  }
+
   const element = document.getElementById(sectionId);
   if (element) {
-    const elementPosition = element.getBoundingClientRect().top;
-    const offsetPosition = elementPosition + window.pageYOffset - offset;
+    const rect = element.getBoundingClientRect();
+    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+    const targetPosition = scrollTop + rect.top - offset;
 
-    window.scrollTo({
-      top: offsetPosition,
-      behavior: 'smooth',
-    });
+    // Only scroll if we're not already at the target position
+    if (Math.abs(window.pageYOffset - targetPosition) > 5) {
+      isScrolling = true;
+      
+      window.scrollTo({
+        top: targetPosition,
+        behavior: 'smooth',
+      });
+
+      // Reset flag after scroll completes (smooth scroll takes ~500ms)
+      setTimeout(() => {
+        isScrolling = false;
+      }, 600);
+    }
   }
 }
 

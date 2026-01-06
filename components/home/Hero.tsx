@@ -6,9 +6,9 @@ export function Hero() {
   return (
     <section className="relative bg-gradient-to-br from-[#06243A] via-[#0A2640] to-[#0F2E4A] overflow-hidden">
       {/* Animated gradient shapes */}
-      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[#69E6A6]/15 rounded-full blur-3xl animate-pulse"></div>
-      <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-[#4A9EFF]/15 rounded-full blur-3xl"></div>
-      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] bg-[#69E6A6]/5 rounded-full blur-3xl"></div>
+      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[#69E6A6]/15 rounded-full blur-2xl animate-pulse"></div>
+      <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-[#4A9EFF]/15 rounded-full blur-2xl"></div>
+      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] bg-[#69E6A6]/5 rounded-full blur-2xl"></div>
 
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24 lg:py-32 relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">

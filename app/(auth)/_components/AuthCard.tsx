@@ -1,4 +1,6 @@
 import { ReactNode } from 'react';
+import Image from 'next/image';
+import Link from 'next/link';
 
 interface AuthCardProps {
   title: string;
@@ -11,24 +13,39 @@ export function AuthCard({ title, subtitle, children, illustration = 'login' }: 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-[#06243A] via-[#0A2640] to-[#0F2E4A] px-4 py-12 relative overflow-hidden">
       {/* Animated gradient shapes */}
-      <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-[#69E6A6]/15 rounded-full blur-3xl animate-pulse"></div>
-      <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-[#4A9EFF]/15 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
-      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] bg-[#69E6A6]/5 rounded-full blur-3xl"></div>
+      <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-[#69E6A6]/15 rounded-full blur-2xl animate-pulse"></div>
+      <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-[#4A9EFF]/15 rounded-full blur-2xl animate-pulse" style={{ animationDelay: '1s' }}></div>
+      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] bg-[#69E6A6]/5 rounded-full blur-2xl"></div>
       
       <div className="w-full max-w-6xl relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-0 bg-[#1C3D5B]/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/10 overflow-hidden">
           {/* Left Side - Form */}
-          <div className="p-8 lg:p-12 flex flex-col justify-center">
+          <div className="p-8 lg:p-12 flex flex-col justify-center relative">
+            {/* Home Button - Top Right */}
+            <Link
+              href="/"
+              className="absolute top-4 right-4 flex items-center justify-center w-10 h-10 rounded-full bg-white/10 hover:bg-[#69E6A6]/20 border border-white/20 hover:border-[#69E6A6]/50 text-white hover:text-[#69E6A6] transition-all duration-300 hover:scale-110 z-10"
+              title="Go to Home"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+              </svg>
+            </Link>
+
             <div className="mb-8">
               <div className="flex items-center space-x-3 mb-6">
-                <div className="relative w-12 h-12 flex-shrink-0">
-                  <img
-                    src="/images/hamro service.png"
-                    alt="Hamro Service Logo"
-                    className="w-full h-full object-contain"
-                  />
-                </div>
-                <span className="text-white text-2xl font-bold">Hamro Service</span>
+                <Link href="/" className="flex items-center space-x-3 hover:opacity-80 transition-opacity">
+                  <div className="relative w-12 h-12 flex-shrink-0">
+                    <Image
+                      src="/images/hamro service.png"
+                      alt="Hamro Service Logo"
+                      width={48}
+                      height={48}
+                      className="w-full h-full object-contain"
+                    />
+                  </div>
+                  <span className="text-white text-2xl font-bold">Hamro Service</span>
+                </Link>
               </div>
               <h1 className="text-4xl lg:text-5xl font-bold text-white mb-3">{title}</h1>
               {subtitle && (
