@@ -199,7 +199,7 @@ export default function ProviderDashboardPage() {
               <div className="flex items-center justify-between mb-2">
                 <div>
                   <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">
-                    Welcome back, {user.name}! 👋
+                    Welcome back, {user.name}! 
                   </h1>
                   <p className="text-white/70 text-lg">Manage your bookings and services</p>
                 </div>

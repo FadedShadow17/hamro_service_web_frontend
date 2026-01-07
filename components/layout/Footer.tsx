@@ -1,15 +1,31 @@
 'use client';
 
-import { memo } from 'react';
+import { memo, useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import { handleSectionNavigation } from '@/utils/scrollToSection';
+import { isAuthenticated } from '@/lib/auth/auth.storage';
 
 const FooterComponent = () => {
   const currentYear = new Date().getFullYear();
   const pathname = usePathname();
   const router = useRouter();
+  const [authenticated, setAuthenticated] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  // Check authentication on client side to avoid hydration mismatch
+  useEffect(() => {
+    setMounted(true);
+    setAuthenticated(isAuthenticated());
+  }, []);
+
+  // Re-check authentication when pathname changes (user might have logged in/out)
+  useEffect(() => {
+    if (mounted) {
+      setAuthenticated(isAuthenticated());
+    }
+  }, [pathname, mounted]);
 
   // Navigation items matching header
   const navItems = [
@@ -75,23 +91,25 @@ const FooterComponent = () => {
             </div>
           </div>
 
-          {/* Navigation Links - Matching Header */}
-          <div>
-            <h3 className="font-semibold mb-5 text-white text-lg">Navigation</h3>
-            <ul className="space-y-3 text-sm">
-              {navItems.map((item) => (
-                <li key={item.href}>
-                  <Link
-                    href={item.href}
-                    onClick={(e) => handleNavClick(e, item)}
-                    className="text-white/70 hover:text-[#69E6A6] transition-all hover:translate-x-1 inline-block"
-                  >
-                    {item.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
+          {/* Navigation Links - Matching Header - Hidden when logged in */}
+          {!authenticated && (
+            <div>
+              <h3 className="font-semibold mb-5 text-white text-lg">Navigation</h3>
+              <ul className="space-y-3 text-sm">
+                {navItems.map((item) => (
+                  <li key={item.href}>
+                    <Link
+                      href={item.href}
+                      onClick={(e) => handleNavClick(e, item)}
+                      className="text-white/70 hover:text-[#69E6A6] transition-all hover:translate-x-1 inline-block"
+                    >
+                      {item.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
 
           {/* Contact & Support */}
           <div>

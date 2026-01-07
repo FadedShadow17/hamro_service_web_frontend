@@ -198,8 +198,8 @@ const HeaderComponent = () => {
             <span className="text-white text-xl font-bold hidden sm:inline">Hamro Service</span>
           </Link>
 
-          {/* Desktop Navigation Links - Only show when not authenticated */}
-          {!authenticated && (
+          {/* Desktop Navigation Links - Show on home page or when not authenticated */}
+          {(pathname === '/' || !authenticated) && (
             <nav className="hidden lg:flex items-center space-x-8">
               {navItems.map((item) => {
                 const isActive = isNavActive(item);
@@ -406,8 +406,8 @@ const HeaderComponent = () => {
         {mobileMenuOpen && (
           <div className="lg:hidden absolute top-20 left-0 right-0 bg-[#0A2640]/98 backdrop-blur-sm border-t border-white/10 shadow-xl">
             <nav className="container mx-auto px-4 py-6 space-y-2">
-              {/* Show public nav only when not authenticated */}
-              {!authenticated ? (
+              {/* Show public nav on home page or when not authenticated */}
+              {(pathname === '/' || !authenticated) ? (
                 <>
                   {/* Home Button in Mobile Menu */}
                   {pathname !== '/' && (
@@ -441,7 +441,7 @@ const HeaderComponent = () => {
                   })}
                 </>
               ) : (
-                /* Show context action in mobile menu when authenticated */
+                /* Show context action in mobile menu when authenticated and not on home page */
                 user && (
                   <Link
                     href={isUser(user) ? '/dashboard/user/bookings' : '/dashboard/provider/bookings'}
