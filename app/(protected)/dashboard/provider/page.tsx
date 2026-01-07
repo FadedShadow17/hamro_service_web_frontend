@@ -27,7 +27,22 @@ export default function ProviderDashboardPage() {
       router.replace('/dashboard');
     } else {
       setUser(currentUser);
-      loadDashboardData();
+      
+      // Wrap in async function to properly handle errors and prevent Next.js error overlay
+      const loadData = async () => {
+        try {
+          await loadDashboardData();
+        } catch (err) {
+          // Error is already handled in loadDashboardData, but we catch here
+          // to prevent unhandled promise rejection that triggers Next.js error overlay
+          if (err instanceof HttpError && err.status === 404 && err.message.includes('Provider profile not found')) {
+            // This is an expected error, already handled in loadDashboardData
+            return;
+          }
+        }
+      };
+      
+      loadData();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [router]);
@@ -36,11 +51,44 @@ export default function ProviderDashboardPage() {
   useEffect(() => {
     const handleFocus = () => {
       if (user && isProvider(user)) {
-        loadDashboardData();
+        // Wrap in async function to prevent unhandled promise rejections
+        const loadData = async () => {
+          try {
+            await loadDashboardData();
+          } catch (err) {
+            // Error is already handled in loadDashboardData
+            if (err instanceof HttpError && err.status === 404 && err.message.includes('Provider profile not found')) {
+              return;
+            }
+          }
+        };
+        loadData();
       }
     };
     window.addEventListener('focus', handleFocus);
     return () => window.removeEventListener('focus', handleFocus);
+  }, [user]);
+
+  // Listen for custom event to refresh dashboard summary (triggered from My Jobs page)
+  useEffect(() => {
+    const handleRefresh = () => {
+      if (user && isProvider(user)) {
+        // Wrap in async function to prevent unhandled promise rejections
+        const loadData = async () => {
+          try {
+            await loadDashboardData();
+          } catch (err) {
+            // Error is already handled in loadDashboardData
+            if (err instanceof HttpError && err.status === 404 && err.message.includes('Provider profile not found')) {
+              return;
+            }
+          }
+        };
+        loadData();
+      }
+    };
+    window.addEventListener('refreshDashboardSummary', handleRefresh);
+    return () => window.removeEventListener('refreshDashboardSummary', handleRefresh);
   }, [user]);
 
   const loadDashboardData = async () => {
@@ -48,8 +96,28 @@ export default function ProviderDashboardPage() {
       setLoading(true);
       const [summaryData, verificationData] = await Promise.all([
         getProviderDashboardSummary().catch((err) => {
-          console.error('Error loading dashboard summary:', err);
-          // Return default empty summary on error
+          // Prevent error from propagating to Next.js error overlay
+          if (err instanceof HttpError) {
+            // Handle 404 (provider profile not found) gracefully
+            if (err.status === 404 && err.message.includes('Provider profile not found')) {
+              // This is expected for providers who haven't completed verification yet
+              // Return empty summary - verification status will show they need to verify
+              console.info('Provider profile not found - user needs to complete verification');
+              return {
+                pending: 0,
+                confirmed: 0,
+                completed: 0,
+                total: 0,
+                upcoming: [],
+                recent: [],
+              };
+            }
+            // For other errors, log but still return empty summary
+            console.error('Error loading dashboard summary:', err);
+          } else {
+            console.error('Unexpected error loading dashboard summary:', err);
+          }
+          // Return default empty summary on any error
           return {
             pending: 0,
             confirmed: 0,
@@ -64,9 +132,14 @@ export default function ProviderDashboardPage() {
       setDashboardSummary(summaryData);
       setVerificationStatus(verificationData?.verificationStatus || null);
     } catch (err) {
+      // This catch should rarely be hit since we're catching errors in Promise.all
+      // But we keep it as a safety net
       console.error('Error loading dashboard data:', err);
       if (err instanceof HttpError) {
-        toast.error(err.message || 'Failed to load dashboard data');
+        // Only show toast for unexpected errors, not for missing profile
+        if (err.status !== 404 || !err.message.includes('Provider profile not found')) {
+          toast.error(err.message || 'Failed to load dashboard data');
+        }
       }
     } finally {
       setLoading(false);

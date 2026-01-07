@@ -27,14 +27,31 @@ export default function UserBookingsPage() {
     }
     
     setUser(currentUser);
-    loadBookings();
+    
+    // Wrap in async function to properly handle errors and prevent Next.js error overlay
+    const loadData = async () => {
+      try {
+        await loadBookings();
+      } catch (err) {
+        // Error is already handled in loadBookings, but we catch here
+        // to prevent unhandled promise rejection that triggers Next.js error overlay
+        // The error state is set in loadBookings, so we don't need to do anything here
+        if (err instanceof HttpError && err.status === 403) {
+          // This is an expected error (insufficient permissions), already handled
+          return;
+        }
+      }
+    };
+    
+    loadData();
 
     // Refetch bookings when page gains focus (to sync with provider actions)
     const handleFocus = () => {
-      loadBookings();
+      loadData();
     };
     window.addEventListener('focus', handleFocus);
     return () => window.removeEventListener('focus', handleFocus);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [router, filter]);
 
   const loadBookings = async () => {
@@ -45,8 +62,19 @@ export default function UserBookingsPage() {
       const data = await getMyBookings(status);
       setBookings(data);
     } catch (err) {
+      // Prevent error from propagating to Next.js error overlay
       if (err instanceof HttpError) {
-        setError(err.message || 'Failed to load bookings. Please try again.');
+        // Handle 403 (insufficient permissions) gracefully
+        if (err.status === 403) {
+          const errorMsg = 'You do not have permission to view bookings. Please ensure you are logged in as a user.';
+          setError(errorMsg);
+          toast.error('Insufficient permissions. Please log in as a user to view your bookings.');
+          // Redirect to dashboard after showing error
+          setTimeout(() => router.push('/dashboard'), 2000);
+        } else {
+          // For other errors, just set error state (no toast to avoid duplication)
+          setError(err.message || 'Failed to load bookings. Please try again.');
+        }
       } else {
         setError('Failed to load bookings. Please try again.');
       }

@@ -1,10 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { getUser, isProvider } from '@/lib/auth/auth.storage';
 import { RouteGuard } from '@/components/auth/RouteGuard';
-import { getProviderBookings, acceptBooking, declineBooking, completeBooking, cancelProviderBooking, type Booking, type BookingStatus } from '@/lib/api/bookings.api';
+import { getProviderBookings, updateProviderBookingStatus, type Booking, type BookingStatus } from '@/lib/api/bookings.api';
 import { getVerificationStatus, type VerificationData } from '@/lib/api/provider-verification.api';
 import { HttpError } from '@/lib/api/http';
 import { useToastContext } from '@/providers/ToastProvider';
@@ -12,13 +12,21 @@ import { isCategoryMatch } from '@/lib/utils/category-matcher';
 
 export default function ProviderBookingsPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const toast = useToastContext();
   const [user, setUser] = useState<ReturnType<typeof getUser>>(null);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>('');
   const [isProviderProfileMissing, setIsProviderProfileMissing] = useState(false);
-  const [filter, setFilter] = useState<BookingStatus | 'ALL'>('ALL');
+  // Initialize filter from URL query parameter, default to 'ALL'
+  const [filter, setFilter] = useState<BookingStatus | 'ALL'>(() => {
+    const statusParam = searchParams.get('status');
+    if (statusParam && ['PENDING', 'CONFIRMED', 'COMPLETED', 'DECLINED', 'CANCELLED'].includes(statusParam)) {
+      return statusParam as BookingStatus;
+    }
+    return 'ALL';
+  });
   const [mounted, setMounted] = useState(false);
   const [actionLoading, setActionLoading] = useState<Record<string, string>>({}); // Track which action is loading for which booking
   const [providerVerification, setProviderVerification] = useState<VerificationData | null>(null);
@@ -64,7 +72,29 @@ export default function ProviderBookingsPage() {
     };
     window.addEventListener('focus', handleFocus);
     return () => window.removeEventListener('focus', handleFocus);
-  }, [router, filter]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [router]);
+
+  // Sync filter with URL query parameter changes
+  useEffect(() => {
+    const statusParam = searchParams.get('status');
+    if (statusParam && ['PENDING', 'CONFIRMED', 'COMPLETED', 'DECLINED', 'CANCELLED'].includes(statusParam)) {
+      const newFilter = statusParam as BookingStatus;
+      if (newFilter !== filter) {
+        setFilter(newFilter);
+      }
+    } else if (!statusParam && filter !== 'ALL') {
+      setFilter('ALL');
+    }
+  }, [searchParams, filter]);
+
+  // Load bookings when filter changes
+  useEffect(() => {
+    if (mounted && user) {
+      loadBookings();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filter]);
 
   const loadBookings = async () => {
     try {
@@ -97,17 +127,26 @@ export default function ProviderBookingsPage() {
     }
   };
 
+  // Helper function to refresh dashboard summary (triggers refresh on dashboard page)
+  const refreshDashboardSummary = () => {
+    // Dispatch a custom event that the dashboard page can listen to
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('refreshDashboardSummary'));
+    }
+  };
+
   const handleAccept = async (bookingId: string) => {
     setActionLoading({ ...actionLoading, [bookingId]: 'accept' });
     try {
-      await acceptBooking(bookingId);
+      await updateProviderBookingStatus(bookingId, 'CONFIRMED');
       toast.success('Booking accepted successfully');
       await loadBookings(); // Refetch to update UI immediately
+      refreshDashboardSummary(); // Refresh dashboard summary
     } catch (err) {
       if (err instanceof HttpError) {
         // Handle booking already assigned to another provider
         if (err.status === 409 && err.code === 'BOOKING_ALREADY_ASSIGNED') {
-          toast.info('Another provider has already accepted this booking. Refreshing...');
+          toast.info('Another provider already accepted');
           setTimeout(() => loadBookings(), 1000);
         }
         // Handle verification requirement
@@ -117,12 +156,12 @@ export default function ProviderBookingsPage() {
         } 
         // Handle ownership error
         else if (err.status === 403 && (err.code === 'BOOKING_NOT_ASSIGNED' || err.code === 'UNAUTHORIZED_PROVIDER' || err.message.includes('not assigned'))) {
-          toast.error('This booking is not assigned to you. Please refresh the page.');
+          toast.error('This job is not yours');
           setTimeout(() => loadBookings(), 1000);
         }
         // Handle category restriction error
         else if (err.status === 403 && err.code === 'CATEGORY_NOT_ALLOWED') {
-          toast.error(err.message || 'You are not verified for this service category.');
+          toast.error('You can only accept jobs for your verified role');
         }
         // Handle other errors
         else {
@@ -145,17 +184,18 @@ export default function ProviderBookingsPage() {
     if (!confirm('Are you sure you want to decline this booking?')) return;
     setActionLoading({ ...actionLoading, [bookingId]: 'decline' });
     try {
-      await declineBooking(bookingId);
+      await updateProviderBookingStatus(bookingId, 'DECLINED');
       toast.success('Booking declined successfully');
       await loadBookings(); // Refetch to update UI immediately
+      refreshDashboardSummary(); // Refresh dashboard summary
     } catch (err) {
       if (err instanceof HttpError) {
         // Handle ownership error
         if (err.status === 403 && (err.code === 'BOOKING_NOT_ASSIGNED' || err.code === 'UNAUTHORIZED_PROVIDER' || err.message.includes('not assigned'))) {
-          toast.error('This booking is not assigned to you. Please refresh the page.');
+          toast.error('This job is not yours');
           setTimeout(() => loadBookings(), 1000);
         }
-        // Handle category restriction error
+        // Handle category restriction error (shouldn't happen for decline, but handle gracefully)
         else if (err.status === 403 && err.code === 'CATEGORY_NOT_ALLOWED') {
           toast.error(err.message || 'You are not verified for this service category.');
         } else {
@@ -178,19 +218,20 @@ export default function ProviderBookingsPage() {
     if (!confirm('Are you sure you want to cancel this booking? This action cannot be undone.')) return;
     setActionLoading({ ...actionLoading, [bookingId]: 'cancel' });
     try {
-      await cancelProviderBooking(bookingId);
+      await updateProviderBookingStatus(bookingId, 'CANCELLED');
       toast.success('Booking cancelled successfully');
       await loadBookings(); // Refetch to update UI immediately
+      refreshDashboardSummary(); // Refresh dashboard summary
     } catch (err) {
       if (err instanceof HttpError) {
         // Handle ownership error
         if (err.status === 403 && (err.code === 'BOOKING_NOT_ASSIGNED' || err.code === 'UNAUTHORIZED_PROVIDER' || err.message.includes('not assigned'))) {
-          toast.error('This booking is not assigned to you. Please refresh the page.');
+          toast.error('This job is not yours');
           setTimeout(() => loadBookings(), 1000);
         }
         // Handle invalid status transition
         else if (err.status === 400 && err.code === 'INVALID_STATUS_TRANSITION') {
-          toast.error(err.message || 'Cannot cancel this booking. Only CONFIRMED bookings can be cancelled.');
+          toast.error(err.message || 'Cannot cancel this booking. Only PENDING or CONFIRMED bookings can be cancelled.');
         }
         // Handle other errors
         else {
@@ -213,9 +254,10 @@ export default function ProviderBookingsPage() {
     if (!confirm('Mark this booking as completed?')) return;
     setActionLoading({ ...actionLoading, [bookingId]: 'complete' });
     try {
-      await completeBooking(bookingId);
+      await updateProviderBookingStatus(bookingId, 'COMPLETED');
       toast.success('Service marked as completed');
       await loadBookings(); // Refetch to update UI immediately
+      refreshDashboardSummary(); // Refresh dashboard summary
     } catch (err) {
       if (err instanceof HttpError) {
         // Handle verification requirement
@@ -225,10 +267,10 @@ export default function ProviderBookingsPage() {
         }
         // Handle ownership error
         else if (err.status === 403 && (err.code === 'BOOKING_NOT_ASSIGNED' || err.code === 'UNAUTHORIZED_PROVIDER' || err.message.includes('not assigned'))) {
-          toast.error('This booking is not assigned to you. Please refresh the page.');
+          toast.error('This job is not yours');
           setTimeout(() => loadBookings(), 1000);
         }
-        // Handle category restriction error
+        // Handle category restriction error (shouldn't happen for complete, but handle gracefully)
         else if (err.status === 403 && err.code === 'CATEGORY_NOT_ALLOWED') {
           toast.error(err.message || 'You are not verified for this service category.');
         }
@@ -310,7 +352,9 @@ export default function ProviderBookingsPage() {
     );
   }
 
-  const filteredBookings = filter === 'ALL' ? bookings : bookings.filter(b => b.status === filter);
+  // No client-side filtering needed - backend returns filtered results
+  // Use bookings directly as they're already filtered by the API
+  const displayedBookings = bookings;
 
   return (
     <RouteGuard requireAuth redirectTo="/login">
@@ -329,7 +373,17 @@ export default function ProviderBookingsPage() {
               {(['ALL', 'PENDING', 'CONFIRMED', 'COMPLETED', 'DECLINED', 'CANCELLED'] as const).map((status) => (
                 <button
                   key={status}
-                  onClick={() => setFilter(status)}
+                  onClick={() => {
+                    setFilter(status);
+                    // Update URL query parameter
+                    const params = new URLSearchParams(searchParams.toString());
+                    if (status === 'ALL') {
+                      params.delete('status');
+                    } else {
+                      params.set('status', status);
+                    }
+                    router.push(`/dashboard/provider/bookings?${params.toString()}`, { scroll: false });
+                  }}
                   className={`px-4 py-2 rounded-lg font-medium transition-all ${
                     filter === status
                       ? 'bg-[#69E6A6] text-[#0A2640]'
@@ -382,7 +436,7 @@ export default function ProviderBookingsPage() {
                   Try Again
                 </button>
               </div>
-            ) : filteredBookings.length === 0 ? (
+            ) : displayedBookings.length === 0 ? (
               <div className="rounded-2xl bg-[#1C3D5B] border border-white/10 p-12 text-center">
                 <svg className="w-16 h-16 text-white/30 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
@@ -394,7 +448,7 @@ export default function ProviderBookingsPage() {
               </div>
             ) : (
               <div className="space-y-4">
-                {filteredBookings.map((booking) => (
+                {displayedBookings.map((booking) => (
                   <div
                     key={booking.id}
                     className="rounded-2xl bg-[#1C3D5B] border border-white/10 p-6 hover:border-[#69E6A6]/50 transition-all"

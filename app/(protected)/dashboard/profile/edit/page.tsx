@@ -31,9 +31,18 @@ export default function EditProfilePage() {
     }
     
     setUserState(currentUser);
+    // Initialize phone with +977- prefix if empty or doesn't have it
+    let phoneValue = currentUser.phone || '';
+    if (phoneValue && !phoneValue.startsWith('+977-')) {
+      // If phone exists but doesn't have prefix, add it
+      phoneValue = '+977-' + phoneValue.replace(/^\+977-?/, '');
+    } else if (!phoneValue) {
+      // If no phone, set default prefix
+      phoneValue = '+977-';
+    }
     setFormData({
       name: currentUser.name || '',
-      phone: currentUser.phone || '',
+      phone: phoneValue,
     });
     if (currentUser.profileImageUrl) {
       setAvatarPreview(
@@ -46,7 +55,30 @@ export default function EditProfilePage() {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    
+    // Special handling for phone number to ensure +977- prefix is always present
+    if (name === 'phone') {
+      // If user tries to delete the prefix, prevent it
+      if (value.length < 6) { // +977- is 6 characters
+        setFormData((prev) => ({ ...prev, phone: '+977-' }));
+        return;
+      }
+      
+      // If prefix is missing, add it
+      if (!value.startsWith('+977-')) {
+        // Extract digits only and add prefix
+        const digitsOnly = value.replace(/[^\d]/g, '').slice(0, 10);
+        setFormData((prev) => ({ ...prev, phone: '+977-' + digitsOnly }));
+        return;
+      }
+      
+      // Extract digits after prefix, limit to 10 digits
+      const afterPrefix = value.slice(6); // +977- is 6 characters
+      const digitsOnly = afterPrefix.replace(/[^\d]/g, '').slice(0, 10);
+      setFormData((prev) => ({ ...prev, phone: '+977-' + digitsOnly }));
+    } else {
+      setFormData((prev) => ({ ...prev, [name]: value }));
+    }
   };
 
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -92,8 +124,14 @@ export default function EditProfilePage() {
     setLoading(true);
 
     try {
+      // Prepare form data - if phone is just "+977-", treat it as empty
+      const submitData = {
+        ...formData,
+        phone: formData.phone === '+977-' ? '' : formData.phone,
+      };
+      
       // Update profile with or without avatar
-      const updatedUser = await updateUserProfileWithAvatar(formData, avatarFile || undefined);
+      const updatedUser = await updateUserProfileWithAvatar(submitData, avatarFile || undefined);
       
       // Update local storage
       setUser(updatedUser);
@@ -228,18 +266,29 @@ export default function EditProfilePage() {
                   <label htmlFor="phone" className="block text-sm font-medium text-white/90 mb-2">
                     Phone Number <span className="text-white/50 text-xs">(Optional)</span>
                   </label>
-                  <input
-                    type="tel"
-                    id="phone"
-                    name="phone"
-                    value={formData.phone}
-                    onChange={handleInputChange}
-                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-[#69E6A6] focus:border-transparent transition-all"
-                    placeholder="+977-XXXXXXXXX"
-                    pattern="\+977-[0-9]{9,10}"
-                  />
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none z-10">
+                      <span className="text-white/70">+977-</span>
+                    </div>
+                    <input
+                      type="tel"
+                      id="phone"
+                      name="phone"
+                      value={formData.phone.replace(/^\+977-/, '')}
+                      onChange={handleInputChange}
+                      onFocus={(e) => {
+                        // Ensure cursor is at the end
+                        const len = e.target.value.length;
+                        e.target.setSelectionRange(len, len);
+                      }}
+                      className="w-full pl-16 pr-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-[#69E6A6] focus:border-transparent transition-all"
+                      placeholder="XXXXXXXXX"
+                      pattern="[0-9]{9,10}"
+                      maxLength={10}
+                    />
+                  </div>
                   <p className="mt-1 text-xs text-white/50">
-                    Format: +977-XXXXXXXXX (e.g., +977-9841234567)
+                    Enter 9-10 digits (prefix +977- is fixed)
                   </p>
                 </div>
 
