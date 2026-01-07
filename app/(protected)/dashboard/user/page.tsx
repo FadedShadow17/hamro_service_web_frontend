@@ -41,7 +41,6 @@ export default function UserDashboardPage() {
       
       try {
         servicesData = await getServices(true);
-        console.log('Services loaded:', servicesData.length, servicesData);
       } catch (servicesErr) {
         console.error('Error loading services:', servicesErr);
         servicesError = servicesErr instanceof Error ? servicesErr.message : 'Failed to load services';
@@ -49,7 +48,6 @@ export default function UserDashboardPage() {
         // Try without active filter as fallback
         try {
           servicesData = await getServices();
-          console.log('Services loaded (all):', servicesData.length, servicesData);
           servicesError = null; // Clear error if fallback succeeds
         } catch (fallbackErr) {
           console.error('Error loading all services:', fallbackErr);
@@ -66,7 +64,6 @@ export default function UserDashboardPage() {
       let bookingsData: Booking[] = [];
       try {
         bookingsData = await getMyBookings();
-        console.log('Bookings loaded:', bookingsData.length);
       } catch (bookingsErr) {
         console.warn('Bookings not available (this is normal for new users):', bookingsErr);
         // Silently fail - bookings are optional and might fail for new users
