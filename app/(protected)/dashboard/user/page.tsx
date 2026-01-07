@@ -187,6 +187,66 @@ export default function UserDashboardPage() {
               </div>
             </div>
 
+            {/* Recent Bookings Section */}
+            {bookings.length > 0 && (
+              <div className="mb-8">
+                <div className="rounded-2xl bg-[#1C3D5B] border border-white/10 p-6">
+                  <div className="flex items-center justify-between mb-6">
+                    <div>
+                      <h2 className="text-xl font-bold text-white mb-1">Recent Bookings</h2>
+                      <p className="text-white/70 text-sm">Your latest service bookings</p>
+                    </div>
+                    <Link
+                      href="/dashboard/user/bookings"
+                      className="text-[#69E6A6] hover:text-[#5dd195] text-sm font-medium transition-colors"
+                    >
+                      View All →
+                    </Link>
+                  </div>
+                  <div className="space-y-4">
+                    {bookings
+                      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+                      .slice(0, 5)
+                      .map((booking) => {
+                        const getStatusColor = (status: string) => {
+                          const colors: Record<string, string> = {
+                            PENDING: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/50',
+                            CONFIRMED: 'bg-[#69E6A6]/20 text-[#69E6A6] border-[#69E6A6]/50',
+                            COMPLETED: 'bg-blue-500/20 text-blue-400 border-blue-500/50',
+                            DECLINED: 'bg-red-500/20 text-red-400 border-red-500/50',
+                            CANCELLED: 'bg-gray-500/20 text-gray-400 border-gray-500/50',
+                          };
+                          return colors[status] || 'bg-white/10 text-white/70 border-white/20';
+                        };
+                        return (
+                          <Link
+                            key={booking.id}
+                            href="/dashboard/user/bookings"
+                            className="block rounded-xl bg-[#0A2640] border border-white/5 p-4 hover:border-[#69E6A6]/30 transition-all"
+                          >
+                            <div className="flex items-center justify-between mb-2">
+                              <span className={`px-2 py-1 rounded text-xs font-semibold border ${getStatusColor(booking.status)}`}>
+                                {booking.status}
+                              </span>
+                              <span className="text-white/60 text-sm">
+                                {new Date(`${booking.date}T${booking.timeSlot}`).toLocaleDateString('en-US', {
+                                  month: 'short',
+                                  day: 'numeric',
+                                  hour: '2-digit',
+                                  minute: '2-digit',
+                                })}
+                              </span>
+                            </div>
+                            <p className="text-white font-medium mb-1">Booking #{booking.id.slice(0, 8)}</p>
+                            <p className="text-white/60 text-sm">{booking.area}</p>
+                          </Link>
+                        );
+                      })}
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Quick Actions */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
               <Link

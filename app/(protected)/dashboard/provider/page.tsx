@@ -5,11 +5,18 @@ import { useRouter } from 'next/navigation';
 import { getUser, isProvider } from '@/lib/auth/auth.storage';
 import { RouteGuard } from '@/components/auth/RouteGuard';
 import Link from 'next/link';
+import { getProviderBookings, type Booking, type BookingStatus } from '@/lib/api/bookings.api';
+import { getVerificationStatus, type VerificationStatus } from '@/lib/api/provider-verification.api';
+import { HttpError } from '@/lib/api/http';
+import { LoadingSkeleton, BookingCardSkeleton } from '@/components/dashboard/LoadingSkeleton';
 
 export default function ProviderDashboardPage() {
   const router = useRouter();
   const [user, setUser] = useState<ReturnType<typeof getUser>>(null);
   const [mounted, setMounted] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [verificationStatus, setVerificationStatus] = useState<VerificationStatus | null>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -18,8 +25,25 @@ export default function ProviderDashboardPage() {
       router.replace('/dashboard');
     } else {
       setUser(currentUser);
+      loadDashboardData();
     }
   }, [router]);
+
+  const loadDashboardData = async () => {
+    try {
+      setLoading(true);
+      const [bookingsData, verificationData] = await Promise.all([
+        getProviderBookings().catch(() => []),
+        getVerificationStatus().catch(() => null),
+      ]);
+      setBookings(bookingsData);
+      setVerificationStatus(verificationData?.verificationStatus || null);
+    } catch (err) {
+      console.error('Error loading dashboard data:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   if (!mounted || !user || !isProvider(user)) {
     return (
@@ -31,74 +55,286 @@ export default function ProviderDashboardPage() {
     );
   }
 
+  // Calculate stats
+  const pendingBookings = bookings.filter(b => b.status === 'PENDING');
+  const confirmedBookings = bookings.filter(b => b.status === 'CONFIRMED');
+  const completedBookings = bookings.filter(b => b.status === 'COMPLETED');
+  const upcomingBookings = bookings
+    .filter(b => ['PENDING', 'CONFIRMED'].includes(b.status))
+    .sort((a, b) => {
+      const dateA = new Date(`${a.date}T${a.timeSlot}`);
+      const dateB = new Date(`${b.date}T${b.timeSlot}`);
+      return dateA.getTime() - dateB.getTime();
+    })
+    .slice(0, 5);
+
+  const recentBookings = bookings
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    .slice(0, 5);
+
+  const getStatusColor = (status: BookingStatus) => {
+    const colors: Record<BookingStatus, string> = {
+      PENDING: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/50',
+      CONFIRMED: 'bg-[#69E6A6]/20 text-[#69E6A6] border-[#69E6A6]/50',
+      COMPLETED: 'bg-blue-500/20 text-blue-400 border-blue-500/50',
+      DECLINED: 'bg-red-500/20 text-red-400 border-red-500/50',
+      CANCELLED: 'bg-gray-500/20 text-gray-400 border-gray-500/50',
+    };
+    return colors[status] || 'bg-white/10 text-white/70 border-white/20';
+  };
+
+  const getVerificationBadge = () => {
+    if (!verificationStatus) return null;
+    const badges: Record<string, { text: string; color: string }> = {
+      NOT_SUBMITTED: { text: 'Not Verified', color: 'bg-gray-500/20 text-gray-400 border-gray-500/50' },
+      PENDING_REVIEW: { text: 'Pending Review', color: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/50' },
+      APPROVED: { text: 'Verified', color: 'bg-[#69E6A6]/20 text-[#69E6A6] border-[#69E6A6]/50' },
+      REJECTED: { text: 'Rejected', color: 'bg-red-500/20 text-red-400 border-red-500/50' },
+    };
+    const badge = badges[verificationStatus];
+    if (!badge) return null;
+    return (
+      <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${badge.color}`}>
+        {badge.text}
+      </span>
+    );
+  };
+
   return (
     <RouteGuard requireAuth redirectTo="/login">
       <div className="min-h-screen bg-[#0A2640]">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-20">
-          <div className="max-w-6xl mx-auto">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <div className="max-w-7xl mx-auto">
+            {/* Header Section */}
             <div className="mb-8">
-              <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">
-                Provider Dashboard
-              </h1>
-              <p className="text-white/70">Manage your bookings and availability</p>
+              <div className="flex items-center justify-between mb-2">
+                <div>
+                  <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">
+                    Welcome back, {user.name}! 👋
+                  </h1>
+                  <p className="text-white/70">Manage your bookings and services</p>
+                </div>
+                {getVerificationBadge()}
+              </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-              <Link
-                href="/dashboard/provider/bookings"
-                className="rounded-2xl bg-[#1C3D5B] p-6 border border-white/10 hover:border-[#69E6A6]/50 transition-all duration-300 hover:scale-105"
-              >
-                <div className="flex items-center space-x-4">
-                  <div className="w-12 h-12 rounded-full bg-[#69E6A6]/20 flex items-center justify-center">
-                    <svg className="w-6 h-6 text-[#69E6A6]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                    </svg>
-                  </div>
-                  <div>
-                    <h3 className="text-white font-semibold text-lg">My Jobs</h3>
-                    <p className="text-white/70 text-sm">View and manage booking requests</p>
-                  </div>
-                </div>
-              </Link>
+            {loading ? (
+              <LoadingSkeleton />
+            ) : (
+              <>
+                {/* KPI Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+                  <Link
+                    href="/dashboard/provider/bookings?status=PENDING"
+                    className="group rounded-2xl bg-gradient-to-br from-yellow-500/20 to-yellow-500/5 p-6 border border-yellow-500/30 hover:border-yellow-500/50 transition-all duration-300 hover:scale-105"
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="w-12 h-12 rounded-xl bg-yellow-500 flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      </div>
+                      <svg className="w-5 h-5 text-yellow-400 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </div>
+                    <h3 className="text-white font-bold text-2xl mb-1">{pendingBookings.length}</h3>
+                    <p className="text-white/70 text-sm">Pending Requests</p>
+                  </Link>
 
-              <Link
-                href="/dashboard/provider/availability"
-                className="rounded-2xl bg-[#1C3D5B] p-6 border border-white/10 hover:border-[#69E6A6]/50 transition-all duration-300 hover:scale-105"
-              >
-                <div className="flex items-center space-x-4">
-                  <div className="w-12 h-12 rounded-full bg-[#4A9EFF]/20 flex items-center justify-center">
-                    <svg className="w-6 h-6 text-[#4A9EFF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                  </div>
-                  <div>
-                    <h3 className="text-white font-semibold text-lg">Availability</h3>
-                    <p className="text-white/70 text-sm">Set your weekly schedule</p>
-                  </div>
-                </div>
-              </Link>
+                  <Link
+                    href="/dashboard/provider/bookings?status=CONFIRMED"
+                    className="group rounded-2xl bg-gradient-to-br from-[#69E6A6]/20 to-[#69E6A6]/5 p-6 border border-[#69E6A6]/30 hover:border-[#69E6A6]/50 transition-all duration-300 hover:scale-105"
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="w-12 h-12 rounded-xl bg-[#69E6A6] flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <svg className="w-6 h-6 text-[#0A2640]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      </div>
+                      <svg className="w-5 h-5 text-[#69E6A6] group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </div>
+                    <h3 className="text-white font-bold text-2xl mb-1">{confirmedBookings.length}</h3>
+                    <p className="text-white/70 text-sm">Confirmed</p>
+                  </Link>
 
-              <Link
-                href="/dashboard/provider/verification"
-                className="rounded-2xl bg-[#1C3D5B] p-6 border border-white/10 hover:border-[#69E6A6]/50 transition-all duration-300 hover:scale-105"
-              >
-                <div className="flex items-center space-x-4">
-                  <div className="w-12 h-12 rounded-full bg-[#FFA500]/20 flex items-center justify-center">
-                    <svg className="w-6 h-6 text-[#FFA500]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                    </svg>
+                  <div className="rounded-2xl bg-gradient-to-br from-blue-500/20 to-blue-500/5 p-6 border border-blue-500/30">
+                    <div className="w-12 h-12 rounded-xl bg-blue-500 flex items-center justify-center mb-2">
+                      <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </div>
+                    <h3 className="text-white font-bold text-2xl mb-1">{completedBookings.length}</h3>
+                    <p className="text-white/70 text-sm">Completed</p>
                   </div>
-                  <div>
-                    <h3 className="text-white font-semibold text-lg">Verification</h3>
-                    <p className="text-white/70 text-sm">Complete your verification</p>
+
+                  <div className="rounded-2xl bg-gradient-to-br from-[#4A9EFF]/20 to-[#4A9EFF]/5 p-6 border border-[#4A9EFF]/30">
+                    <div className="w-12 h-12 rounded-xl bg-[#4A9EFF] flex items-center justify-center mb-2">
+                      <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                      </svg>
+                    </div>
+                    <h3 className="text-white font-bold text-2xl mb-1">{bookings.length}</h3>
+                    <p className="text-white/70 text-sm">Total Bookings</p>
                   </div>
                 </div>
-              </Link>
-            </div>
+
+                {/* Quick Actions */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                  <Link
+                    href="/dashboard/provider/bookings"
+                    className="rounded-2xl bg-[#1C3D5B] p-6 border border-white/10 hover:border-[#69E6A6]/50 transition-all duration-300 hover:scale-105"
+                  >
+                    <div className="flex items-center space-x-4">
+                      <div className="w-12 h-12 rounded-full bg-[#69E6A6]/20 flex items-center justify-center">
+                        <svg className="w-6 h-6 text-[#69E6A6]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                        </svg>
+                      </div>
+                      <div>
+                        <h3 className="text-white font-semibold text-lg">My Jobs</h3>
+                        <p className="text-white/70 text-sm">View and manage booking requests</p>
+                      </div>
+                    </div>
+                  </Link>
+
+                  <Link
+                    href="/dashboard/provider/availability"
+                    className="rounded-2xl bg-[#1C3D5B] p-6 border border-white/10 hover:border-[#69E6A6]/50 transition-all duration-300 hover:scale-105"
+                  >
+                    <div className="flex items-center space-x-4">
+                      <div className="w-12 h-12 rounded-full bg-[#4A9EFF]/20 flex items-center justify-center">
+                        <svg className="w-6 h-6 text-[#4A9EFF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      </div>
+                      <div>
+                        <h3 className="text-white font-semibold text-lg">Availability</h3>
+                        <p className="text-white/70 text-sm">Set your weekly schedule</p>
+                      </div>
+                    </div>
+                  </Link>
+
+                  <Link
+                    href="/dashboard/provider/verification"
+                    className="rounded-2xl bg-[#1C3D5B] p-6 border border-white/10 hover:border-[#69E6A6]/50 transition-all duration-300 hover:scale-105"
+                  >
+                    <div className="flex items-center space-x-4">
+                      <div className="w-12 h-12 rounded-full bg-[#FFA500]/20 flex items-center justify-center">
+                        <svg className="w-6 h-6 text-[#FFA500]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                        </svg>
+                      </div>
+                      <div>
+                        <h3 className="text-white font-semibold text-lg">Verification</h3>
+                        <p className="text-white/70 text-sm">Complete your verification</p>
+                      </div>
+                    </div>
+                  </Link>
+                </div>
+
+                {/* Upcoming Jobs & Recent Bookings */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {/* Upcoming Jobs */}
+                  <div className="rounded-2xl bg-[#1C3D5B] border border-white/10 p-6">
+                    <div className="flex items-center justify-between mb-6">
+                      <h2 className="text-xl font-bold text-white">Upcoming Jobs</h2>
+                      <Link
+                        href="/dashboard/provider/bookings"
+                        className="text-[#69E6A6] hover:text-[#5dd195] text-sm font-medium transition-colors"
+                      >
+                        View All →
+                      </Link>
+                    </div>
+                    {upcomingBookings.length === 0 ? (
+                      <div className="text-center py-12">
+                        <svg className="w-16 h-16 text-white/20 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                        </svg>
+                        <p className="text-white/60">No upcoming jobs</p>
+                        <p className="text-white/40 text-sm mt-1">Bookings will appear here</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        {upcomingBookings.map((booking) => (
+                          <Link
+                            key={booking.id}
+                            href="/dashboard/provider/bookings"
+                            className="block rounded-xl bg-[#0A2640] border border-white/5 p-4 hover:border-[#69E6A6]/30 transition-all"
+                          >
+                            <div className="flex items-center justify-between mb-2">
+                              <span className={`px-2 py-1 rounded text-xs font-semibold border ${getStatusColor(booking.status)}`}>
+                                {booking.status}
+                              </span>
+                              <span className="text-white/60 text-sm">
+                                {new Date(`${booking.date}T${booking.timeSlot}`).toLocaleDateString('en-US', {
+                                  month: 'short',
+                                  day: 'numeric',
+                                })}
+                              </span>
+                            </div>
+                            <p className="text-white font-medium mb-1">Booking #{booking.id.slice(0, 8)}</p>
+                            <p className="text-white/60 text-sm">{booking.area}</p>
+                            <p className="text-white/60 text-sm">{booking.timeSlot}</p>
+                          </Link>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Recent Bookings */}
+                  <div className="rounded-2xl bg-[#1C3D5B] border border-white/10 p-6">
+                    <div className="flex items-center justify-between mb-6">
+                      <h2 className="text-xl font-bold text-white">Recent Activity</h2>
+                      <Link
+                        href="/dashboard/provider/bookings"
+                        className="text-[#69E6A6] hover:text-[#5dd195] text-sm font-medium transition-colors"
+                      >
+                        View All →
+                      </Link>
+                    </div>
+                    {recentBookings.length === 0 ? (
+                      <div className="text-center py-12">
+                        <svg className="w-16 h-16 text-white/20 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <p className="text-white/60">No recent activity</p>
+                        <p className="text-white/40 text-sm mt-1">Your bookings will appear here</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        {recentBookings.map((booking) => (
+                          <Link
+                            key={booking.id}
+                            href="/dashboard/provider/bookings"
+                            className="block rounded-xl bg-[#0A2640] border border-white/5 p-4 hover:border-[#69E6A6]/30 transition-all"
+                          >
+                            <div className="flex items-center justify-between mb-2">
+                              <span className={`px-2 py-1 rounded text-xs font-semibold border ${getStatusColor(booking.status)}`}>
+                                {booking.status}
+                              </span>
+                              <span className="text-white/60 text-sm">
+                                {new Date(booking.createdAt).toLocaleDateString('en-US', {
+                                  month: 'short',
+                                  day: 'numeric',
+                                })}
+                              </span>
+                            </div>
+                            <p className="text-white font-medium mb-1">Booking #{booking.id.slice(0, 8)}</p>
+                            <p className="text-white/60 text-sm">{booking.area}</p>
+                          </Link>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         </div>
       </div>
     </RouteGuard>
   );
 }
-
