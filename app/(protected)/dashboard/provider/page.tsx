@@ -5,17 +5,19 @@ import { useRouter } from 'next/navigation';
 import { getUser, isProvider } from '@/lib/auth/auth.storage';
 import { RouteGuard } from '@/components/auth/RouteGuard';
 import Link from 'next/link';
-import { getProviderBookings, type Booking, type BookingStatus } from '@/lib/api/bookings.api';
+import { getProviderDashboardSummary, type Booking, type BookingStatus, type DashboardSummary } from '@/lib/api/bookings.api';
 import { getVerificationStatus, type VerificationStatus } from '@/lib/api/provider-verification.api';
 import { HttpError } from '@/lib/api/http';
 import { LoadingSkeleton, BookingCardSkeleton } from '@/components/dashboard/LoadingSkeleton';
+import { useToastContext } from '@/providers/ToastProvider';
 
 export default function ProviderDashboardPage() {
   const router = useRouter();
+  const toast = useToastContext();
   const [user, setUser] = useState<ReturnType<typeof getUser>>(null);
   const [mounted, setMounted] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [dashboardSummary, setDashboardSummary] = useState<DashboardSummary | null>(null);
   const [verificationStatus, setVerificationStatus] = useState<VerificationStatus | null>(null);
 
   useEffect(() => {
@@ -30,17 +32,42 @@ export default function ProviderDashboardPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [router]);
 
+  // Refetch dashboard data when page gains focus (to sync with actions from My Jobs page)
+  useEffect(() => {
+    const handleFocus = () => {
+      if (user && isProvider(user)) {
+        loadDashboardData();
+      }
+    };
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
+  }, [user]);
+
   const loadDashboardData = async () => {
     try {
       setLoading(true);
-      const [bookingsData, verificationData] = await Promise.all([
-        getProviderBookings().catch(() => []),
+      const [summaryData, verificationData] = await Promise.all([
+        getProviderDashboardSummary().catch((err) => {
+          console.error('Error loading dashboard summary:', err);
+          // Return default empty summary on error
+          return {
+            pending: 0,
+            confirmed: 0,
+            completed: 0,
+            total: 0,
+            upcoming: [],
+            recent: [],
+          };
+        }),
         getVerificationStatus().catch(() => null),
       ]);
-      setBookings(bookingsData);
+      setDashboardSummary(summaryData);
       setVerificationStatus(verificationData?.verificationStatus || null);
     } catch (err) {
       console.error('Error loading dashboard data:', err);
+      if (err instanceof HttpError) {
+        toast.error(err.message || 'Failed to load dashboard data');
+      }
     } finally {
       setLoading(false);
     }
@@ -57,22 +84,13 @@ export default function ProviderDashboardPage() {
     );
   }
 
-  // Calculate stats
-  const pendingBookings = bookings.filter(b => b.status === 'PENDING');
-  const confirmedBookings = bookings.filter(b => b.status === 'CONFIRMED');
-  const completedBookings = bookings.filter(b => b.status === 'COMPLETED');
-  const upcomingBookings = bookings
-    .filter(b => ['PENDING', 'CONFIRMED'].includes(b.status))
-    .sort((a, b) => {
-      const dateA = new Date(`${a.date}T${a.timeSlot}`);
-      const dateB = new Date(`${b.date}T${b.timeSlot}`);
-      return dateA.getTime() - dateB.getTime();
-    })
-    .slice(0, 5);
-
-  const recentBookings = bookings
-    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-    .slice(0, 5);
+  // Use dashboard summary data (real data from API)
+  const pendingCount = dashboardSummary?.pending || 0;
+  const confirmedCount = dashboardSummary?.confirmed || 0;
+  const completedCount = dashboardSummary?.completed || 0;
+  const totalCount = dashboardSummary?.total || 0;
+  const upcomingBookings = dashboardSummary?.upcoming || [];
+  const recentBookings = dashboardSummary?.recent || [];
 
   const getStatusColor = (status: BookingStatus) => {
     const colors: Record<BookingStatus, string> = {
@@ -157,10 +175,10 @@ export default function ProviderDashboardPage() {
                         </svg>
                       </div>
                       <div className="space-y-1">
-                        <h3 className="text-white font-bold text-3xl mb-1 group-hover:text-yellow-400 transition-colors">{pendingBookings.length}</h3>
+                        <h3 className="text-white font-bold text-3xl mb-1 group-hover:text-yellow-400 transition-colors">{pendingCount}</h3>
                         <p className="text-white/80 text-sm font-medium">Pending Requests</p>
                         <div className="h-1 w-full bg-white/10 rounded-full overflow-hidden mt-2">
-                          <div className="h-full bg-yellow-500 rounded-full" style={{ width: `${Math.min((pendingBookings.length / 10) * 100, 100)}%` }}></div>
+                          <div className="h-full bg-yellow-500 rounded-full" style={{ width: `${Math.min((pendingCount / 10) * 100, 100)}%` }}></div>
                         </div>
                       </div>
                     </div>
@@ -191,10 +209,10 @@ export default function ProviderDashboardPage() {
                         </svg>
                       </div>
                       <div className="space-y-1">
-                        <h3 className="text-white font-bold text-3xl mb-1 group-hover:text-[#69E6A6] transition-colors">{confirmedBookings.length}</h3>
+                        <h3 className="text-white font-bold text-3xl mb-1 group-hover:text-[#69E6A6] transition-colors">{confirmedCount}</h3>
                         <p className="text-white/80 text-sm font-medium">Confirmed</p>
                         <div className="h-1 w-full bg-white/10 rounded-full overflow-hidden mt-2">
-                          <div className="h-full bg-[#69E6A6] rounded-full" style={{ width: `${Math.min((confirmedBookings.length / 10) * 100, 100)}%` }}></div>
+                          <div className="h-full bg-[#69E6A6] rounded-full" style={{ width: `${Math.min((confirmedCount / 10) * 100, 100)}%` }}></div>
                         </div>
                       </div>
                     </div>
@@ -219,10 +237,10 @@ export default function ProviderDashboardPage() {
                         </div>
                       </div>
                       <div className="space-y-1">
-                        <h3 className="text-white font-bold text-3xl mb-1 group-hover:text-blue-400 transition-colors">{completedBookings.length}</h3>
+                        <h3 className="text-white font-bold text-3xl mb-1 group-hover:text-blue-400 transition-colors">{completedCount}</h3>
                         <p className="text-white/80 text-sm font-medium">Completed</p>
                         <div className="h-1 w-full bg-white/10 rounded-full overflow-hidden mt-2">
-                          <div className="h-full bg-blue-500 rounded-full" style={{ width: `${Math.min((completedBookings.length / 10) * 100, 100)}%` }}></div>
+                          <div className="h-full bg-blue-500 rounded-full" style={{ width: `${Math.min((completedCount / 10) * 100, 100)}%` }}></div>
                         </div>
                       </div>
                     </div>
@@ -247,10 +265,10 @@ export default function ProviderDashboardPage() {
                         </div>
                       </div>
                       <div className="space-y-1">
-                        <h3 className="text-white font-bold text-3xl mb-1 group-hover:text-[#4A9EFF] transition-colors">{bookings.length}</h3>
+                        <h3 className="text-white font-bold text-3xl mb-1 group-hover:text-[#4A9EFF] transition-colors">{totalCount}</h3>
                         <p className="text-white/80 text-sm font-medium">Total Bookings</p>
                         <div className="h-1 w-full bg-white/10 rounded-full overflow-hidden mt-2">
-                          <div className="h-full bg-[#4A9EFF] rounded-full" style={{ width: `${Math.min((bookings.length / 20) * 100, 100)}%` }}></div>
+                          <div className="h-full bg-[#4A9EFF] rounded-full" style={{ width: `${Math.min((totalCount / 20) * 100, 100)}%` }}></div>
                         </div>
                       </div>
                     </div>
@@ -384,7 +402,7 @@ export default function ProviderDashboardPage() {
                                 {booking.status}
                               </span>
                               <span className="text-white/60 text-sm">
-                                {new Date(booking.createdAt).toLocaleDateString('en-US', {
+                                {new Date(booking.updatedAt || booking.createdAt).toLocaleDateString('en-US', {
                                   month: 'short',
                                   day: 'numeric',
                                 })}

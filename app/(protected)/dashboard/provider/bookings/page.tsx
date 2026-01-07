@@ -4,10 +4,11 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { getUser, isProvider } from '@/lib/auth/auth.storage';
 import { RouteGuard } from '@/components/auth/RouteGuard';
-import { getProviderBookings, acceptBooking, declineBooking, completeBooking, type Booking, type BookingStatus } from '@/lib/api/bookings.api';
+import { getProviderBookings, acceptBooking, declineBooking, completeBooking, cancelProviderBooking, type Booking, type BookingStatus } from '@/lib/api/bookings.api';
 import { getVerificationStatus, type VerificationData } from '@/lib/api/provider-verification.api';
 import { HttpError } from '@/lib/api/http';
 import { useToastContext } from '@/providers/ToastProvider';
+import { isCategoryMatch } from '@/lib/utils/category-matcher';
 
 export default function ProviderBookingsPage() {
   const router = useRouter();
@@ -104,15 +105,19 @@ export default function ProviderBookingsPage() {
       await loadBookings(); // Refetch to update UI immediately
     } catch (err) {
       if (err instanceof HttpError) {
+        // Handle booking already assigned to another provider
+        if (err.status === 409 && err.code === 'BOOKING_ALREADY_ASSIGNED') {
+          toast.info('Another provider has already accepted this booking. Refreshing...');
+          setTimeout(() => loadBookings(), 1000);
+        }
         // Handle verification requirement
-        if (err.status === 403 && err.message.includes('verification')) {
+        else if (err.status === 403 && err.message.includes('verification')) {
           toast.error(`${err.message} Please complete your verification to accept bookings.`);
           setTimeout(() => router.push('/dashboard/provider/verification'), 2000);
         } 
         // Handle ownership error
         else if (err.status === 403 && (err.code === 'BOOKING_NOT_ASSIGNED' || err.code === 'UNAUTHORIZED_PROVIDER' || err.message.includes('not assigned'))) {
           toast.error('This booking is not assigned to you. Please refresh the page.');
-          // Auto-refresh after showing error
           setTimeout(() => loadBookings(), 1000);
         }
         // Handle category restriction error
@@ -158,6 +163,41 @@ export default function ProviderBookingsPage() {
         }
       } else {
         console.error('Unexpected error declining booking:', err);
+        toast.error('An unexpected error occurred. Please try again.');
+      }
+    } finally {
+      setActionLoading((prev) => {
+        const next = { ...prev };
+        delete next[bookingId];
+        return next;
+      });
+    }
+  };
+
+  const handleCancel = async (bookingId: string) => {
+    if (!confirm('Are you sure you want to cancel this booking? This action cannot be undone.')) return;
+    setActionLoading({ ...actionLoading, [bookingId]: 'cancel' });
+    try {
+      await cancelProviderBooking(bookingId);
+      toast.success('Booking cancelled successfully');
+      await loadBookings(); // Refetch to update UI immediately
+    } catch (err) {
+      if (err instanceof HttpError) {
+        // Handle ownership error
+        if (err.status === 403 && (err.code === 'BOOKING_NOT_ASSIGNED' || err.code === 'UNAUTHORIZED_PROVIDER' || err.message.includes('not assigned'))) {
+          toast.error('This booking is not assigned to you. Please refresh the page.');
+          setTimeout(() => loadBookings(), 1000);
+        }
+        // Handle invalid status transition
+        else if (err.status === 400 && err.code === 'INVALID_STATUS_TRANSITION') {
+          toast.error(err.message || 'Cannot cancel this booking. Only CONFIRMED bookings can be cancelled.');
+        }
+        // Handle other errors
+        else {
+          toast.error(err.message || 'Failed to cancel booking. Please try again.');
+        }
+      } else {
+        console.error('Unexpected error cancelling booking:', err);
         toast.error('An unexpected error occurred. Please try again.');
       }
     } finally {
@@ -226,43 +266,38 @@ export default function ProviderBookingsPage() {
     }
   };
 
-  // Map service name to expected provider role (same as backend)
-  const getExpectedRoleForService = (serviceName: string): string | null => {
-    const roleMapping: Record<string, string> = {
-      'electrical': 'Electrician',
-      'plumbing': 'Plumber',
-      'cleaning': 'Cleaner',
-      'carpentry': 'Carpenter',
-      'painting': 'Painter',
-      'hvac': 'HVAC Technician',
-      'appliance repair': 'Appliance Repair Technician',
-      'gardening': 'Gardener/Landscaper',
-      'pest control': 'Pest Control Specialist',
-      'water tank cleaning': 'Water Tank Cleaner',
-    };
-    return roleMapping[serviceName.toLowerCase().trim()] || null;
-  };
-
-  // Check if provider can accept/decline this booking
-  const canProviderActionBooking = (booking: Booking): { canAction: boolean; reason?: string } => {
-    // Check if booking has a provider assigned
-    if (!booking.providerId) {
-      return { canAction: false, reason: 'No provider assigned' };
+  // Check if provider can accept this booking (category must match)
+  // Decline is always allowed regardless of category
+  const canProviderAcceptBooking = (booking: Booking): { canAccept: boolean; reason?: string } => {
+    // NEW LOGIC: Can accept if booking is unassigned (providerId is null) and category matches
+    // If booking is already assigned (providerId is set), backend will handle ownership check
+    
+    // If booking is already assigned to another provider, backend will return 409
+    // Frontend can't check this without provider profile ID, so we allow the attempt
+    // Backend will enforce the check
+    
+    // Check if provider has a verified role
+    if (!providerVerification?.serviceRole) {
+      return { canAccept: false, reason: 'You need to complete verification with a service role to accept bookings.' };
     }
 
-    // Check category matching if service and provider role are available
-    if (booking.service && providerVerification?.serviceRole) {
-      const expectedRole = getExpectedRoleForService(booking.service.name);
-      if (expectedRole && providerVerification.serviceRole !== expectedRole) {
+    // For unassigned bookings (providerId is null), check category match
+    if (!booking.providerId && booking.service) {
+      const categoryMatches = isCategoryMatch(providerVerification.serviceRole, booking.service.name);
+      
+      if (!categoryMatches) {
         return {
-          canAction: false,
-          reason: `Not allowed for your category. This booking requires ${expectedRole}, but you are verified as ${providerVerification.serviceRole}.`,
+          canAccept: false,
+          reason: `You're verified as ${providerVerification.serviceRole}. This booking is for ${booking.service.name}. You can decline this booking if needed.`,
         };
       }
     }
 
-    // If no service role mapping exists, allow (graceful fallback)
-    return { canAction: true };
+    // If booking is already assigned (providerId is set), allow attempt
+    // Backend will check if it's assigned to this provider
+    // If assigned to different provider, backend returns 409 BOOKING_ALREADY_ASSIGNED
+    
+    return { canAccept: true };
   };
 
   if (!mounted || !user || !isProvider(user)) {
@@ -432,25 +467,34 @@ export default function ProviderBookingsPage() {
 
                       <div className="flex flex-col sm:flex-row gap-2">
                         {booking.status === 'PENDING' && (() => {
-                          const { canAction, reason } = canProviderActionBooking(booking);
-                          if (!canAction) {
-                            return (
-                              <div className="flex flex-col gap-2">
-                                <span className="px-4 py-2 bg-orange-500/20 border border-orange-500/50 text-orange-400 rounded-lg text-sm font-medium">
-                                  {reason || 'Not allowed for your category'}
-                                </span>
-                              </div>
-                            );
-                          }
+                          const { canAccept, reason } = canProviderAcceptBooking(booking);
                           return (
                             <>
-                              <button
-                                onClick={() => handleAccept(booking.id)}
-                                disabled={actionLoading[booking.id] === 'accept'}
-                                className="px-6 py-2 bg-[#69E6A6] hover:bg-[#5dd195] text-[#0A2640] rounded-lg font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                              >
-                                {actionLoading[booking.id] === 'accept' ? 'Accepting...' : 'Accept'}
-                              </button>
+                              {canAccept ? (
+                                <button
+                                  onClick={() => handleAccept(booking.id)}
+                                  disabled={actionLoading[booking.id] === 'accept'}
+                                  className="px-6 py-2 bg-[#69E6A6] hover:bg-[#5dd195] text-[#0A2640] rounded-lg font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                  {actionLoading[booking.id] === 'accept' ? 'Accepting...' : 'Accept'}
+                                </button>
+                              ) : (
+                                <div className="flex flex-col gap-2">
+                                  <button
+                                    disabled
+                                    className="px-6 py-2 bg-gray-500/20 border border-gray-500/50 text-gray-400 rounded-lg font-semibold cursor-not-allowed"
+                                    title={reason}
+                                  >
+                                    Accept
+                                  </button>
+                                  {reason && (
+                                    <span className="px-3 py-1.5 bg-orange-500/20 border border-orange-500/50 text-orange-400 rounded-lg text-xs font-medium max-w-xs">
+                                      {reason}
+                                    </span>
+                                  )}
+                                </div>
+                              )}
+                              {/* Decline is always allowed */}
                               <button
                                 onClick={() => handleDecline(booking.id)}
                                 disabled={actionLoading[booking.id] === 'decline'}
@@ -462,13 +506,22 @@ export default function ProviderBookingsPage() {
                           );
                         })()}
                         {booking.status === 'CONFIRMED' && (
-                          <button
-                            onClick={() => handleComplete(booking.id)}
-                            disabled={actionLoading[booking.id] === 'complete'}
-                            className="px-6 py-2 bg-[#4A9EFF] hover:bg-[#3a8ee0] text-white rounded-lg font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                          >
-                            {actionLoading[booking.id] === 'complete' ? 'Completing...' : 'Mark Complete'}
-                          </button>
+                          <>
+                            <button
+                              onClick={() => handleComplete(booking.id)}
+                              disabled={actionLoading[booking.id] === 'complete' || actionLoading[booking.id] === 'cancel'}
+                              className="px-6 py-2 bg-[#4A9EFF] hover:bg-[#3a8ee0] text-white rounded-lg font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              {actionLoading[booking.id] === 'complete' ? 'Completing...' : 'Mark Complete'}
+                            </button>
+                            <button
+                              onClick={() => handleCancel(booking.id)}
+                              disabled={actionLoading[booking.id] === 'cancel' || actionLoading[booking.id] === 'complete'}
+                              className="px-6 py-2 bg-red-500/20 hover:bg-red-500/30 border border-red-500/50 text-red-400 rounded-lg font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              {actionLoading[booking.id] === 'cancel' ? 'Cancelling...' : 'Cancel'}
+                            </button>
+                          </>
                         )}
                         {(booking.status === 'COMPLETED' || booking.status === 'DECLINED' || booking.status === 'CANCELLED') && (
                           <span className="px-6 py-2 text-white/50 text-sm">

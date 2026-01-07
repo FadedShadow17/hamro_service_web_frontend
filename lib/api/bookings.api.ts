@@ -77,9 +77,11 @@ export async function getMyBookings(status?: BookingStatus): Promise<Booking[]> 
   }
 }
 
-export async function getProviderBookings(status?: BookingStatus): Promise<Booking[]> {
+export async function getProviderBookings(status?: BookingStatus | 'ALL'): Promise<Booking[]> {
   try {
-    const query = status ? `?status=${status}` : '';
+    // Normalize "ALL" to undefined (no filter) - backend handles undefined as "all bookings"
+    const normalizedStatus = status && status !== 'ALL' ? status : undefined;
+    const query = normalizedStatus ? `?status=${normalizedStatus}` : '';
     const response = await http<{ bookings: Booking[] }>(`/api/provider/bookings${query}`, {
       method: 'GET',
     });
@@ -161,6 +163,27 @@ export async function cancelBooking(bookingId: string): Promise<Booking> {
 }
 
 /**
+ * Cancel booking (provider)
+ * PATCH /api/provider/bookings/:id/cancel
+ */
+export async function cancelProviderBooking(bookingId: string): Promise<Booking> {
+  try {
+    const response = await http<{ message: string; booking: Booking }>(
+      `/api/provider/bookings/${bookingId}/cancel`,
+      {
+        method: 'PATCH',
+      }
+    );
+    return response.booking;
+  } catch (error) {
+    if (error instanceof HttpError) {
+      throw error;
+    }
+    throw new HttpError(500, 'Failed to cancel booking');
+  }
+}
+
+/**
  * Update booking status (unified endpoint for provider)
  * PATCH /api/provider/bookings/:id/status
  */
@@ -182,6 +205,36 @@ export async function updateProviderBookingStatus(
       throw error;
     }
     throw new HttpError(500, 'Failed to update booking status');
+  }
+}
+
+/**
+ * Dashboard summary interface
+ */
+export interface DashboardSummary {
+  pending: number;
+  confirmed: number;
+  completed: number;
+  total: number;
+  upcoming: Booking[];
+  recent: Booking[];
+}
+
+/**
+ * Get provider dashboard summary
+ * GET /api/provider/dashboard/summary
+ */
+export async function getProviderDashboardSummary(): Promise<DashboardSummary> {
+  try {
+    const response = await http<DashboardSummary>('/api/provider/dashboard/summary', {
+      method: 'GET',
+    });
+    return response;
+  } catch (error) {
+    if (error instanceof HttpError) {
+      throw error;
+    }
+    throw new HttpError(500, 'Failed to fetch dashboard summary');
   }
 }
 
