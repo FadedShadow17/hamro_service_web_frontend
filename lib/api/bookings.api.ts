@@ -2,11 +2,19 @@ import { http, HttpError } from './http';
 
 export type BookingStatus = 'PENDING' | 'CONFIRMED' | 'COMPLETED' | 'DECLINED' | 'CANCELLED';
 
+export interface ServiceInfo {
+  id: string;
+  name: string;
+  description?: string;
+  basePrice?: number;
+}
+
 export interface Booking {
   id: string;
   userId: string;
   providerId: string;
   serviceId: string;
+  service?: ServiceInfo; // Service details when available
   date: string;
   timeSlot: string;
   area: string;
@@ -16,7 +24,7 @@ export interface Booking {
 }
 
 export interface CreateBookingDTO {
-  providerId: string;
+  providerId?: string; // Optional - backend will assign if not provided
   serviceId: string;
   date: string;
   timeSlot: string;

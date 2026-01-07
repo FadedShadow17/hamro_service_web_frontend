@@ -9,7 +9,7 @@ interface BookingModalProps {
   onClose: () => void;
   onConfirm: (bookingData: {
     serviceId: string;
-    providerId: string;
+    providerId?: string;
     date: string;
     time: string;
     area: string;
@@ -77,7 +77,7 @@ export function BookingModal({ service, isOpen, onClose, onConfirm }: BookingMod
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const newErrors: { date?: string; time?: string; area?: string; provider?: string } = {};
+    const newErrors: { date?: string; time?: string; area?: string } = {};
 
     if (!date) {
       newErrors.date = 'Please select a date';
@@ -88,22 +88,23 @@ export function BookingModal({ service, isOpen, onClose, onConfirm }: BookingMod
     if (!area.trim()) {
       newErrors.area = 'Please enter your location';
     }
-    if (!selectedProviderId) {
-      newErrors.provider = 'Please wait for available providers to load, or select a provider';
-    }
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       return;
     }
 
-    onConfirm({
+    const bookingData: any = {
       serviceId: service!.id,
-      providerId: selectedProviderId,
       date,
       time,
       area: area.trim(),
-    });
+    };
+    // Only include providerId if a specific provider was selected
+    if (selectedProviderId && selectedProviderId.trim() !== '') {
+      bookingData.providerId = selectedProviderId;
+    }
+    onConfirm(bookingData);
   };
 
   if (!isOpen || !service) return null;
@@ -224,11 +225,11 @@ export function BookingModal({ service, isOpen, onClose, onConfirm }: BookingMod
             {errors.area && <p className="mt-1 text-sm text-red-400">{errors.area}</p>}
           </div>
 
-          {/* Provider Selection */}
+          {/* Provider Selection - Optional */}
           {date && area.trim() && (
             <div>
               <label className="block text-sm font-medium text-white/80 mb-2">
-                Select Provider
+                Select Provider (Optional)
               </label>
               {loadingProviders ? (
                 <div className="rounded-lg border border-white/20 bg-[#0A2640] py-3 px-4 text-white/70 text-sm">
@@ -236,6 +237,31 @@ export function BookingModal({ service, isOpen, onClose, onConfirm }: BookingMod
                 </div>
               ) : availableProviders.length > 0 ? (
                 <div className="space-y-2">
+                  <label
+                    className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-all ${
+                      !selectedProviderId
+                        ? 'border-[#69E6A6] bg-[#69E6A6]/10'
+                        : 'border-white/20 bg-[#0A2640] hover:border-white/40'
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="provider"
+                      value=""
+                      checked={!selectedProviderId}
+                      onChange={(e) => {
+                        setSelectedProviderId('');
+                        if (errors.provider) setErrors({ ...errors, provider: undefined });
+                      }}
+                      className="w-4 h-4 text-[#69E6A6] focus:ring-[#69E6A6]"
+                    />
+                    <div className="flex-1">
+                      <div className="text-white font-medium">Auto-assign provider</div>
+                      <div className="text-white/60 text-xs mt-1">
+                        We'll assign an available provider for you
+                      </div>
+                    </div>
+                  </label>
                   {availableProviders.map((provider) => (
                     <label
                       key={provider.providerId}
@@ -266,11 +292,10 @@ export function BookingModal({ service, isOpen, onClose, onConfirm }: BookingMod
                   ))}
                 </div>
               ) : (
-                <div className="rounded-lg border border-yellow-500/50 bg-yellow-500/10 py-3 px-4 text-yellow-400 text-sm">
-                  No providers available for this date and location. Please try a different date or location.
+                <div className="rounded-lg border border-[#69E6A6]/30 bg-[#69E6A6]/5 py-3 px-4 text-white/80 text-sm">
+                  No specific providers available. A provider will be automatically assigned when you confirm your booking.
                 </div>
               )}
-              {errors.provider && <p className="mt-1 text-sm text-red-400">{errors.provider}</p>}
             </div>
           )}
 

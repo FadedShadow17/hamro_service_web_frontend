@@ -29,20 +29,24 @@ export function ServicesGrid({ services }: ServicesGridProps) {
 
   const handleConfirmBooking = async (bookingData: {
     serviceId: string;
-    providerId: string;
+    providerId?: string;
     date: string;
     time: string;
     area: string;
   }) => {
     try {
       const { createBooking } = await import('@/lib/api/bookings.api');
-      await createBooking({
+      const bookingPayload: any = {
         serviceId: bookingData.serviceId,
-        providerId: bookingData.providerId,
         date: bookingData.date,
         timeSlot: bookingData.time,
         area: bookingData.area,
-      });
+      };
+      // Only include providerId if it's not empty
+      if (bookingData.providerId && bookingData.providerId.trim() !== '') {
+        bookingPayload.providerId = bookingData.providerId;
+      }
+      await createBooking(bookingPayload);
       handleCloseModal();
       toast.success('Booking created successfully!');
       // Refresh the page after a short delay to show the toast
@@ -50,10 +54,22 @@ export function ServicesGrid({ services }: ServicesGridProps) {
         window.location.reload();
       }, 1000);
     } catch (error) {
-      console.error('Failed to create booking:', error);
       if (error instanceof HttpError) {
+        // Handle expected "no provider available" scenario gracefully
+        if (error.code === 'NO_PROVIDER_AVAILABLE') {
+          toast.error('No providers available for this service in your location yet.');
+          // Don't log as error - this is an expected scenario
+          console.info('No providers available for booking:', {
+            serviceId: bookingData.serviceId,
+            area: bookingData.area,
+          });
+          return; // Early return - don't show Next.js error overlay
+        }
+        // For other HttpErrors, show error toast
         toast.error(error.message || 'Failed to create booking. Please try again.');
       } else {
+        // For unexpected errors, log and show generic message
+        console.error('Failed to create booking:', error);
         toast.error('Failed to create booking. Please try again.');
       }
     }

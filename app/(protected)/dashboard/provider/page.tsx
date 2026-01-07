@@ -341,6 +341,9 @@ export default function ProviderDashboardPage() {
                               </span>
                             </div>
                             <p className="text-white font-medium mb-1">Booking #{booking.id.slice(0, 8)}</p>
+                            {booking.service ? (
+                              <p className="text-white/80 text-sm font-medium mb-1">{booking.service.name}</p>
+                            ) : null}
                             <p className="text-white/60 text-sm">{booking.area}</p>
                             <p className="text-white/60 text-sm">{booking.timeSlot}</p>
                           </Link>
@@ -388,6 +391,9 @@ export default function ProviderDashboardPage() {
                               </span>
                             </div>
                             <p className="text-white font-medium mb-1">Booking #{booking.id.slice(0, 8)}</p>
+                            {booking.service ? (
+                              <p className="text-white/80 text-sm font-medium mb-1">{booking.service.name}</p>
+                            ) : null}
                             <p className="text-white/60 text-sm">{booking.area}</p>
                           </Link>
                         ))}

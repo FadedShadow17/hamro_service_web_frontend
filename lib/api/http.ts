@@ -13,11 +13,13 @@ interface ApiError {
 export class HttpError extends Error {
   status: number;
   errors?: Record<string, string[]>;
+  code?: string;
 
-  constructor(status: number, message: string, errors?: Record<string, string[]>) {
+  constructor(status: number, message: string, errors?: Record<string, string[]>, code?: string) {
     super(message);
     this.status = status;
     this.errors = errors;
+    this.code = code;
     this.name = 'HttpError';
   }
 }
@@ -62,8 +64,9 @@ export async function http<T = unknown>(
     if (!response.ok) {
       const errorMessage = data.message || data.error || `HTTP ${response.status}: ${response.statusText}`;
       const errors = data.errors || data.validationErrors;
+      const code = data.code;
 
-      throw new HttpError(response.status, errorMessage, errors);
+      throw new HttpError(response.status, errorMessage, errors, code);
     }
 
     return data as T;
