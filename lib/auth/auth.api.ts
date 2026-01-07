@@ -4,6 +4,7 @@ import { User } from './auth.storage';
 export interface RegisterRequest {
   name: string;
   email: string;
+  phone?: string; // Nepal format: +977-XXXXXXXXX
   password: string;
   role: 'user' | 'provider';
 }

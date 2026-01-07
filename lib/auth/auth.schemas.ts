@@ -1,9 +1,17 @@
 import { z } from 'zod';
 
+// Nepal phone number validation: +977-XXXXXXXXX (9-10 digits)
+const nepalPhoneRegex = /^\+977-[0-9]{9,10}$/;
+
 export const registerSchema = z
   .object({
     name: z.string().min(2, 'Name must be at least 2 characters'),
     email: z.string().email('Invalid email address'),
+    phone: z
+      .string()
+      .regex(nepalPhoneRegex, 'Phone number must be in format +977-XXXXXXXXX')
+      .optional()
+      .or(z.literal('')),
     password: z.string().min(6, 'Password must be at least 6 characters'),
     confirmPassword: z.string(),
     role: z.enum(['user', 'provider'], {

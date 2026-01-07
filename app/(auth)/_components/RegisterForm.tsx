@@ -8,6 +8,7 @@ import { registerSchema, type RegisterFormData } from '@/lib/auth/auth.schemas';
 import { register } from '@/lib/auth/auth.api';
 import { HttpError } from '@/lib/api/http';
 import { AuthCard } from './AuthCard';
+import { handlePhoneChange } from '@/lib/utils/phone-format';
 
 export function RegisterForm() {
   const router = useRouter();
@@ -20,12 +21,17 @@ export function RegisterForm() {
     register: registerField,
     handleSubmit,
     formState: { errors },
+    watch,
+    setValue,
   } = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
       role: '',
+      phone: '+977-',
     },
   });
+
+  const phoneValue = watch('phone') || '+977-';
 
   const onSubmit = async (data: RegisterFormData) => {
     setError('');
@@ -33,6 +39,10 @@ export function RegisterForm() {
 
     try {
       const { confirmPassword, ...registerData } = data;
+      // Only include phone if it's provided and not just the prefix
+      if (registerData.phone === '+977-' || !registerData.phone) {
+        delete registerData.phone;
+      }
       await register(registerData);
       router.push('/login?registered=true');
     } catch (err) {
@@ -128,7 +138,10 @@ export function RegisterForm() {
 
         <div>
           <div className="relative">
-            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 z-10">
+              <span className="text-white/70">+977-</span>
+            </div>
+            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-12">
               <svg
                 className="h-5 w-5 text-white/50"
                 fill="none"
@@ -145,10 +158,28 @@ export function RegisterForm() {
             </div>
             <input
               type="tel"
-              placeholder="Phone"
-              className="w-full rounded-lg border border-white/20 bg-[#0A2640] py-3 pl-10 pr-4 text-white placeholder-white/50 focus:border-[#69E6A6] focus:outline-none focus:ring-2 focus:ring-[#69E6A6]/20"
+              placeholder="XXXXXXXXX"
+              value={phoneValue.replace(/^\+977-/, '')}
+              onChange={(e) => {
+                const digitsOnly = e.target.value.replace(/[^\d]/g, '').slice(0, 10);
+                setValue('phone', '+977-' + digitsOnly, { shouldValidate: true });
+              }}
+              onFocus={(e) => {
+                // Move cursor to the end of the input after the prefix
+                const input = e.target;
+                setTimeout(() => {
+                  input.setSelectionRange(input.value.length, input.value.length);
+                }, 0);
+              }}
+              className={`w-full rounded-lg border bg-[#0A2640] py-3 pl-16 pr-4 text-white placeholder-white/50 focus:border-[#69E6A6] focus:outline-none focus:ring-2 focus:ring-[#69E6A6]/20 ${
+                errors.phone ? 'border-red-500' : 'border-white/20'
+              }`}
             />
           </div>
+          {errors.phone && (
+            <p className="mt-1 text-sm text-red-400">{errors.phone.message}</p>
+          )}
+          <p className="mt-1 text-xs text-white/60">Optional - Enter 9-10 digits (prefix +977- is fixed)</p>
         </div>
 
         <div>
