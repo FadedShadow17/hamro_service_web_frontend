@@ -93,7 +93,11 @@ export async function submitVerification(data: SubmitVerificationData): Promise<
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      throw new HttpError(response.status, errorData.message || 'Failed to submit verification');
+      throw new HttpError(
+        response.status, 
+        errorData.message || 'Failed to submit verification',
+        errorData.errors
+      );
     }
 
     const result = await response.json();

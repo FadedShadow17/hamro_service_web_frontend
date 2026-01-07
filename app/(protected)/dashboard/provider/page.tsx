@@ -27,6 +27,7 @@ export default function ProviderDashboardPage() {
       setUser(currentUser);
       loadDashboardData();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [router]);
 
   const loadDashboardData = async () => {
@@ -44,6 +45,7 @@ export default function ProviderDashboardPage() {
       setLoading(false);
     }
   };
+
 
   if (!mounted || !user || !isProvider(user)) {
     return (
@@ -85,18 +87,24 @@ export default function ProviderDashboardPage() {
 
   const getVerificationBadge = () => {
     if (!verificationStatus) return null;
-    const badges: Record<string, { text: string; color: string }> = {
-      NOT_SUBMITTED: { text: 'Not Verified', color: 'bg-gray-500/20 text-gray-400 border-gray-500/50' },
-      PENDING_REVIEW: { text: 'Pending Review', color: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/50' },
-      APPROVED: { text: 'Verified', color: 'bg-[#69E6A6]/20 text-[#69E6A6] border-[#69E6A6]/50' },
-      REJECTED: { text: 'Rejected', color: 'bg-red-500/20 text-red-400 border-red-500/50' },
+    const badges: Record<string, { text: string; color: string; icon: string }> = {
+      NOT_SUBMITTED: { text: 'Not Verified', color: 'bg-gray-500/20 text-gray-400 border-gray-500/50', icon: '⚠️' },
+      PENDING_REVIEW: { text: 'Pending Review', color: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/50', icon: '⏳' },
+      APPROVED: { text: 'Verified', color: 'bg-[#69E6A6]/20 text-[#69E6A6] border-[#69E6A6]/50', icon: '✅' },
+      REJECTED: { text: 'Rejected', color: 'bg-red-500/20 text-red-400 border-red-500/50', icon: '❌' },
     };
     const badge = badges[verificationStatus];
     if (!badge) return null;
     return (
-      <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${badge.color}`}>
-        {badge.text}
-      </span>
+      <div className="flex items-center gap-2">
+        <span className={`px-4 py-2 rounded-full text-sm font-semibold border flex items-center gap-2 ${badge.color}`}>
+          <span>{badge.icon}</span>
+          <span>{badge.text}</span>
+        </span>
+        {verificationStatus === 'APPROVED' && (
+          <span className="text-[#69E6A6] text-sm font-medium">Ready to accept requests</span>
+        )}
+      </div>
     );
   };
 

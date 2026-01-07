@@ -18,7 +18,7 @@ export function VerificationForm({ onSuccess }: VerificationFormProps) {
   
   const [formData, setFormData] = useState<SubmitVerificationData>({
     fullName: '',
-    phoneNumber: '',
+    phoneNumber: '+977-',
     citizenshipNumber: '',
     serviceRole: '',
     address: {
@@ -58,6 +58,7 @@ export function VerificationForm({ onSuccess }: VerificationFormProps) {
   const loadVerificationStatus = async () => {
     try {
       setLoadingStatus(true);
+      setError(''); // Clear any previous errors
       const status = await getVerificationStatus();
       setVerificationStatus(status);
       
@@ -65,7 +66,7 @@ export function VerificationForm({ onSuccess }: VerificationFormProps) {
       if (status.fullName) {
         setFormData({
           fullName: status.fullName || '',
-          phoneNumber: status.phoneNumber || '',
+          phoneNumber: status.phoneNumber || '+977-',
           citizenshipNumber: status.citizenshipNumber || '',
           serviceRole: status.serviceRole || '',
           address: status.address || {
@@ -79,9 +80,11 @@ export function VerificationForm({ onSuccess }: VerificationFormProps) {
         });
       }
     } catch (err) {
-      if (err instanceof HttpError && err.status !== 404) {
-        setError(err.message);
-      }
+      // Silently handle errors - no profile means NOT_SUBMITTED, which is fine
+      // Just set status to NOT_SUBMITTED so form can be shown
+      setVerificationStatus({
+        verificationStatus: 'NOT_SUBMITTED',
+      });
     } finally {
       setLoadingStatus(false);
     }
@@ -98,7 +101,7 @@ export function VerificationForm({ onSuccess }: VerificationFormProps) {
     setError('');
 
     // Validation
-    if (!formData.fullName || !formData.phoneNumber || !formData.citizenshipNumber || !formData.serviceRole) {
+    if (!formData.fullName || !formData.phoneNumber || formData.phoneNumber === '+977-' || !formData.citizenshipNumber || !formData.serviceRole) {
       setError('Please fill in all required fields including service role');
       return;
     }
@@ -108,30 +111,51 @@ export function VerificationForm({ onSuccess }: VerificationFormProps) {
       return;
     }
 
-    if (!images.citizenshipFront || !images.citizenshipBack || !images.profileImage) {
-      setError('Please upload citizenship front, citizenship back, and profile image');
-      return;
-    }
+    // Images are optional for now - just verify the provider
+    // if (!images.citizenshipFront || !images.citizenshipBack || !images.profileImage) {
+    //   setError('Please upload citizenship front, citizenship back, and profile image');
+    //   return;
+    // }
 
     try {
       setLoading(true);
+      
+      // Ensure phone number is properly formatted (remove any spaces)
+      const cleanPhoneNumber = formData.phoneNumber.trim().replace(/\s+/g, '');
+      
       await submitVerification({
         ...formData,
+        phoneNumber: cleanPhoneNumber,
         citizenshipFrontImage: images.citizenshipFront,
         citizenshipBackImage: images.citizenshipBack,
         profileImage: images.profileImage,
         selfieImage: images.selfie,
       });
       
-      toast.success('Verification documents submitted successfully! Your application is now pending review.');
-      if (onSuccess) {
-        onSuccess();
-      } else {
-        await loadVerificationStatus();
-      }
+      // Reload verification status to get updated APPROVED status
+      await loadVerificationStatus();
+      
+      toast.success('User verified! Redirecting to dashboard...');
+      
+      // Small delay to show the success message before redirecting
+      setTimeout(() => {
+        if (onSuccess) {
+          onSuccess();
+        }
+      }, 1500);
     } catch (err) {
       if (err instanceof HttpError) {
-        setError(err.message);
+        // Show validation errors in a user-friendly way
+        if (err.errors && Object.keys(err.errors).length > 0) {
+          const errorMessages = Object.entries(err.errors)
+            .map(([field, messages]) => {
+              const friendlyFieldName = field.split('.').pop()?.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase()) || field;
+              return `${friendlyFieldName}: ${messages.join(', ')}`;
+            });
+          setError(errorMessages.join('. '));
+        } else {
+          setError(err.message || 'Failed to submit verification. Please check your input and try again.');
+        }
       } else {
         setError('Failed to submit verification. Please try again.');
       }
@@ -174,7 +198,7 @@ export function VerificationForm({ onSuccess }: VerificationFormProps) {
           
           {verificationStatus.verificationStatus === 'APPROVED' && (
             <div>
-              <p className="text-white/80 mb-2">✅ Your verification has been approved!</p>
+              <p className="text-white/80 mb-2">✅ You are verified and can now accept service requests!</p>
               {verificationStatus.serviceRole && (
                 <p className="text-white/70 text-sm mb-1">
                   <span className="font-semibold">Service Role:</span> {verificationStatus.serviceRole}
@@ -224,7 +248,7 @@ export function VerificationForm({ onSuccess }: VerificationFormProps) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {error && (
+      {error && !error.includes('Provider profile not found') && (
         <div className="rounded-lg bg-red-500/20 border border-red-500/50 p-4">
           <p className="text-red-400 text-sm">{error}</p>
         </div>
@@ -249,16 +273,32 @@ export function VerificationForm({ onSuccess }: VerificationFormProps) {
         <label className="block text-sm font-medium text-white/80 mb-2">
           Phone Number (Nepal) <span className="text-red-400">*</span>
         </label>
-        <input
-          type="tel"
-          value={formData.phoneNumber}
-          onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })}
-          placeholder="+977-XXXXXXXXX"
-          required
-          pattern="\+977-[0-9]{9,10}"
-          className="w-full rounded-lg border border-white/20 bg-[#0A2640] py-3 px-4 text-white focus:border-[#69E6A6] focus:outline-none focus:ring-2 focus:ring-[#69E6A6]/20 transition-all"
-        />
-        <p className="mt-1 text-xs text-white/60">Format: +977-XXXXXXXXX (9-10 digits)</p>
+        <div className="relative">
+          <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none z-10">
+            <span className="text-white/70">+977-</span>
+          </div>
+          <input
+            type="tel"
+            value={formData.phoneNumber.replace(/^\+977-/, '')}
+            onChange={(e) => {
+              // Get only digits from input, limit to 10
+              const digitsOnly = e.target.value.replace(/[^\d]/g, '').slice(0, 10);
+              // Always set with +977- prefix
+              setFormData((prev) => ({ ...prev, phoneNumber: '+977-' + digitsOnly }));
+            }}
+            onFocus={(e) => {
+              // Ensure cursor is at the end
+              const len = e.target.value.length;
+              e.target.setSelectionRange(len, len);
+            }}
+            placeholder="XXXXXXXXX"
+            required
+            pattern="[0-9]{9,10}"
+            maxLength={10}
+            className="w-full rounded-lg border border-white/20 bg-[#0A2640] py-3 pl-16 pr-4 text-white focus:border-[#69E6A6] focus:outline-none focus:ring-2 focus:ring-[#69E6A6]/20 transition-all"
+          />
+        </div>
+        <p className="mt-1 text-xs text-white/60">Enter 9-10 digits (prefix +977- is fixed)</p>
       </div>
 
       {/* Citizenship Number */}

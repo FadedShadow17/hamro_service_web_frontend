@@ -59,9 +59,10 @@ export default function ProviderBookingsPage() {
       // Prevent error from propagating to Next.js error overlay
       if (err instanceof HttpError) {
         if (err.status === 404 && err.message.includes('Provider profile not found')) {
-          setError('You need to create a provider profile first. Please complete your provider setup to view bookings.');
+          // Silently handle - provider needs to complete verification first
+          setBookings([]);
           setIsProviderProfileMissing(true);
-          // Don't log expected errors to prevent Next.js error overlay
+          // Don't show error message, just show empty state with link to verification
           return;
         } else {
           setError(err.message || 'Failed to load bookings. Please try again.');
@@ -199,32 +200,36 @@ export default function ProviderBookingsPage() {
                   </div>
                 ))}
               </div>
+            ) : isProviderProfileMissing ? (
+              <div className="rounded-2xl bg-[#1C3D5B] border border-white/10 p-12 text-center">
+                <div className="mb-6">
+                  <svg className="w-16 h-16 text-[#69E6A6] mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-bold text-white mb-2">Complete Your Verification</h3>
+                <p className="text-white/70 mb-6 max-w-md mx-auto">
+                  Fill out your verification form to start receiving and accepting service bookings from users.
+                </p>
+                <button
+                  onClick={() => router.push('/dashboard/provider/verification')}
+                  className="px-6 py-3 bg-[#69E6A6] hover:bg-[#5dd195] text-[#0A2640] rounded-lg font-semibold transition-colors"
+                >
+                  Complete Verification
+                </button>
+              </div>
             ) : error ? (
               <div className="rounded-2xl bg-red-500/20 border border-red-500/50 p-6 text-center">
                 <svg className="w-16 h-16 text-red-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                 </svg>
                 <p className="text-red-400 mb-4 text-lg font-semibold">{error}</p>
-                {isProviderProfileMissing ? (
-                  <div className="space-y-3">
-                    <p className="text-red-300 text-sm mb-4">
-                      To start receiving bookings, you need to complete your provider profile setup.
-                    </p>
-                    <button
-                      onClick={() => router.push('/dashboard/provider')}
-                      className="px-6 py-2 bg-[#69E6A6] hover:bg-[#5dd195] text-[#0A2640] rounded-lg font-semibold transition-colors"
-                    >
-                      Go to Provider Dashboard
-                    </button>
-                  </div>
-                ) : (
-                  <button
-                    onClick={loadBookings}
-                    className="px-6 py-2 bg-red-500/20 hover:bg-red-500/30 border border-red-500/50 rounded-lg text-red-400 transition-colors"
-                  >
-                    Try Again
-                  </button>
-                )}
+                <button
+                  onClick={loadBookings}
+                  className="px-6 py-2 bg-red-500/20 hover:bg-red-500/30 border border-red-500/50 rounded-lg text-red-400 transition-colors"
+                >
+                  Try Again
+                </button>
               </div>
             ) : filteredBookings.length === 0 ? (
               <div className="rounded-2xl bg-[#1C3D5B] border border-white/10 p-12 text-center">
