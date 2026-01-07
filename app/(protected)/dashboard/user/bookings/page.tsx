@@ -17,6 +17,7 @@ export default function UserBookingsPage() {
   const [error, setError] = useState<string>('');
   const [filter, setFilter] = useState<BookingStatus | 'ALL'>('ALL');
   const [mounted, setMounted] = useState(false);
+  const [cancellingBookingId, setCancellingBookingId] = useState<string | null>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -86,23 +87,36 @@ export default function UserBookingsPage() {
 
   const handleCancel = async (bookingId: string) => {
     if (!confirm('Are you sure you want to cancel this booking?')) return;
+    
+    setCancellingBookingId(bookingId);
     try {
+      // Ensure we're using the booking's MongoDB _id (booking.id)
       await cancelBooking(bookingId);
-      toast.success('Booking cancelled successfully');
+      toast.success('Booking cancelled');
       await loadBookings(); // Refetch to update UI immediately
     } catch (err) {
+      console.error('Error cancelling booking:', err);
       if (err instanceof HttpError) {
-        // Handle ownership error
-        if (err.status === 403 && (err.code === 'UNAUTHORIZED_USER' || err.message.includes('does not belong'))) {
-          toast.error('This booking does not belong to you. Please refresh the page.');
-          setTimeout(() => loadBookings(), 1000);
+        // Handle ownership error - show toast and return (no crash, no rethrow)
+        if (err.code === 'BOOKING_NOT_OWNED' || (err.status === 403 && err.message.includes('does not belong'))) {
+          toast.error("You can't cancel this booking.");
+          setCancellingBookingId(null);
+          return; // Early return, no further error handling
+        }
+        // Handle status transition errors
+        if (err.status === 400 && (err.message.includes('Cannot cancel') || err.message.includes('terminal'))) {
+          toast.error(err.message || 'This booking cannot be cancelled.');
+          await loadBookings(); // Refresh to get updated status
         } else {
+          // Other errors - show message but don't crash
           toast.error(err.message || 'Failed to cancel booking. Please try again.');
         }
       } else {
-        console.error('Unexpected error cancelling booking:', err);
+        // Unexpected errors - show generic message
         toast.error('An unexpected error occurred. Please try again.');
       }
+    } finally {
+      setCancellingBookingId(null);
     }
   };
 
@@ -340,10 +354,16 @@ export default function UserBookingsPage() {
                       <div className="flex flex-col sm:flex-row gap-2">
                         {(booking.status === 'PENDING' || booking.status === 'CONFIRMED') && (
                           <button
-                            onClick={() => handleCancel(booking.id)}
-                            className="px-6 py-2 bg-red-500/20 hover:bg-red-500/30 border border-red-500/50 text-red-400 rounded-lg font-semibold transition-colors"
+                            type="button"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              handleCancel(booking.id);
+                            }}
+                            disabled={cancellingBookingId === booking.id || loading}
+                            className="px-6 py-2 bg-red-500/20 hover:bg-red-500/30 border border-red-500/50 text-red-400 rounded-lg font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                           >
-                            Cancel Booking
+                            {cancellingBookingId === booking.id ? 'Cancelling...' : 'Cancel Booking'}
                           </button>
                         )}
                         {(booking.status === 'COMPLETED' || booking.status === 'DECLINED' || booking.status === 'CANCELLED') && (

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Service, getAvailableProviders, type AvailableProvider } from '@/lib/api/services.api';
+import { KathmanduMap } from './KathmanduMap';
 
 interface BookingModalProps {
   service: Service | null;
@@ -130,103 +131,165 @@ export function BookingModal({ service, isOpen, onClose, onConfirm }: BookingMod
           </div>
         </div>
 
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-5">
-          {/* Date Picker */}
-          <div>
-            <label className="block text-sm font-medium text-white/80 mb-2">
-              Select Date
-            </label>
-            <div className="relative">
-              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                <svg className="w-5 h-5 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
+        {/* Form - Scrollable */}
+        <div className="overflow-y-auto max-h-[calc(90vh-200px)]">
+          <form onSubmit={handleSubmit} className="p-6 space-y-5">
+            {/* Date Picker - Enhanced with Quick Dates */}
+            <div>
+              <label className="block text-sm font-medium text-white/80 mb-2">
+                Select Date
+              </label>
+              <div className="space-y-2">
+                {/* Quick Date Buttons */}
+                <div className="flex gap-2 flex-wrap">
+                  {(() => {
+                    const quickDates = [];
+                    for (let i = 1; i <= 7; i++) {
+                      const d = new Date();
+                      d.setDate(d.getDate() + i);
+                      quickDates.push(d);
+                    }
+                    return quickDates;
+                  })().map((quickDate) => {
+                    const dateStr = quickDate.toISOString().split('T')[0];
+                    const isSelected = date === dateStr;
+                    return (
+                      <button
+                        key={dateStr}
+                        type="button"
+                        onClick={() => {
+                          setDate(dateStr);
+                          if (errors.date) setErrors({ ...errors, date: undefined });
+                        }}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                          isSelected
+                            ? 'bg-[#69E6A6] text-[#0A2640] shadow-lg shadow-[#69E6A6]/30'
+                            : 'bg-[#0A2640] border border-white/20 text-white/80 hover:border-[#69E6A6]/50 hover:text-white'
+                        }`}
+                      >
+                        {quickDate.toLocaleDateString('en-US', { weekday: 'short', day: 'numeric' })}
+                      </button>
+                    );
+                  })}
+                </div>
+                
+                {/* Date Input */}
+                <div className="relative">
+                  <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 z-10">
+                    <svg className="w-5 h-5 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                  </div>
+                  <input
+                    type="date"
+                    value={date}
+                    onChange={(e) => {
+                      setDate(e.target.value);
+                      if (errors.date) setErrors({ ...errors, date: undefined });
+                    }}
+                    min={getMinDate()}
+                    max={(() => {
+                      const maxDate = new Date();
+                      maxDate.setMonth(maxDate.getMonth() + 3);
+                      return maxDate.toISOString().split('T')[0];
+                    })()}
+                    className={`w-full rounded-xl border bg-[#0A2640] py-2.5 pl-10 pr-4 text-white text-sm cursor-pointer focus:border-[#69E6A6] focus:outline-none focus:ring-2 focus:ring-[#69E6A6]/20 transition-all hover:border-white/40 ${
+                      errors.date ? 'border-red-500' : 'border-white/20'
+                    }`}
+                  />
+                </div>
               </div>
-              <input
-                type="date"
-                value={date}
-                onChange={(e) => {
-                  setDate(e.target.value);
-                  if (errors.date) setErrors({ ...errors, date: undefined });
-                }}
-                min={getMinDate()}
-                className={`w-full rounded-lg border bg-[#0A2640] py-3 pl-10 pr-4 text-white focus:border-[#69E6A6] focus:outline-none focus:ring-2 focus:ring-[#69E6A6]/20 transition-all ${
-                  errors.date ? 'border-red-500' : 'border-white/20'
-                }`}
-              />
+              {date && (
+                <p className="mt-1 text-xs text-white/60">
+                  {new Date(date).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+                </p>
+              )}
+              {errors.date && <p className="mt-1 text-sm text-red-400">{errors.date}</p>}
             </div>
-            {errors.date && <p className="mt-1 text-sm text-red-400">{errors.date}</p>}
-          </div>
 
-          {/* Time Picker */}
-          <div>
-            <label className="block text-sm font-medium text-white/80 mb-2">
-              Select Time
-            </label>
-            <div className="relative">
-              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                <svg className="w-5 h-5 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
+            {/* Time Picker - Enhanced with Time Slots */}
+            <div>
+              <label className="block text-sm font-medium text-white/80 mb-2">
+                Select Time
+              </label>
+              <div className="space-y-2">
+                {/* Quick Time Slots */}
+                <div className="grid grid-cols-4 gap-2">
+                  {['09:00', '12:00', '15:00', '18:00'].map((slot) => (
+                    <button
+                      key={slot}
+                      type="button"
+                      onClick={() => {
+                        setTime(slot);
+                        if (errors.time) setErrors({ ...errors, time: undefined });
+                      }}
+                      className={`px-2 py-2 rounded-lg text-xs font-medium transition-all ${
+                        time === slot
+                          ? 'bg-[#69E6A6] text-[#0A2640] shadow-lg shadow-[#69E6A6]/30'
+                          : 'bg-[#0A2640] border border-white/20 text-white/80 hover:border-[#69E6A6]/50 hover:text-white'
+                      }`}
+                    >
+                      {(() => {
+                        const [h, m] = slot.split(':');
+                        const h12 = parseInt(h) % 12 || 12;
+                        const ampm = parseInt(h) >= 12 ? 'PM' : 'AM';
+                        return `${h12}:${m} ${ampm}`;
+                      })()}
+                    </button>
+                  ))}
+                </div>
+                
+                {/* Time Input */}
+                <div className="relative">
+                  <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 z-10">
+                    <svg className="w-5 h-5 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <input
+                    type="time"
+                    value={time}
+                    onChange={(e) => {
+                      setTime(e.target.value);
+                      if (errors.time) setErrors({ ...errors, time: undefined });
+                    }}
+                    step="900"
+                    className={`w-full rounded-xl border bg-[#0A2640] py-2.5 pl-10 pr-4 text-white text-sm cursor-pointer focus:border-[#69E6A6] focus:outline-none focus:ring-2 focus:ring-[#69E6A6]/20 transition-all hover:border-white/40 ${
+                      errors.time ? 'border-red-500' : 'border-white/20'
+                    }`}
+                  />
+                </div>
               </div>
-              <input
-                type="time"
-                value={time}
-                onChange={(e) => {
-                  setTime(e.target.value);
-                  if (errors.time) setErrors({ ...errors, time: undefined });
-                }}
-                className={`w-full rounded-lg border bg-[#0A2640] py-3 pl-10 pr-4 text-white focus:border-[#69E6A6] focus:outline-none focus:ring-2 focus:ring-[#69E6A6]/20 transition-all ${
-                  errors.time ? 'border-red-500' : 'border-white/20'
-                }`}
-              />
+              {time && (
+                <p className="mt-1 text-xs text-white/60">
+                  {(() => {
+                    const [hours, minutes] = time.split(':');
+                    const hour12 = parseInt(hours) % 12 || 12;
+                    const ampm = parseInt(hours) >= 12 ? 'PM' : 'AM';
+                    return `${hour12}:${minutes} ${ampm}`;
+                  })()}
+                </p>
+              )}
+              {errors.time && <p className="mt-1 text-sm text-red-400">{errors.time}</p>}
             </div>
-            {errors.time && <p className="mt-1 text-sm text-red-400">{errors.time}</p>}
-          </div>
 
-          {/* Location */}
-          <div>
-            <label className="block text-sm font-medium text-white/80 mb-2">
-              Location (Area in Kathmandu)
-            </label>
-            <div className="relative">
-              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                <svg className="w-5 h-5 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-              </div>
-              <select
-                value={area}
-                onChange={(e) => {
-                  setArea(e.target.value);
+            {/* Location - Map Selector */}
+            <div>
+              <label className="block text-sm font-medium text-white/80 mb-2">
+                Location (Choose your current location on the map)
+              </label>
+              <KathmanduMap
+                selectedArea={area}
+                onAreaSelect={(selectedArea) => {
+                  setArea(selectedArea);
                   if (errors.area) setErrors({ ...errors, area: undefined });
                 }}
-                className={`w-full rounded-lg border bg-[#0A2640] py-3 pl-10 pr-10 text-white appearance-none cursor-pointer focus:border-[#69E6A6] focus:outline-none focus:ring-2 focus:ring-[#69E6A6]/20 transition-all ${
-                  errors.area ? 'border-red-500' : 'border-white/20'
-                }`}
-              >
-                <option value="" disabled className="bg-[#1C3D5B] text-white/70">
-                  Select area
-                </option>
-                {['Baneshwor', 'Koteshwor', 'Kalanki', 'Balaju', 'Boudha', 'Kalimati', 'New Road', 'Thamel', 'Chabahil', 'Maharajgunj'].map((areaOption) => (
-                  <option key={areaOption} value={areaOption} className="bg-[#1C3D5B] text-white">
-                    {areaOption}
-                  </option>
-                ))}
-              </select>
-              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
-                <svg className="w-5 h-5 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              </div>
+              />
+              {errors.area && <p className="mt-1 text-sm text-red-400">{errors.area}</p>}
             </div>
-            {errors.area && <p className="mt-1 text-sm text-red-400">{errors.area}</p>}
-          </div>
 
-          {/* Provider Selection - Optional */}
-          {date && area.trim() && (
+            {/* Provider Selection - Optional */}
+            {date && area.trim() && (
             <div>
               <label className="block text-sm font-medium text-white/80 mb-2">
                 Select Provider (Optional)
@@ -297,25 +360,26 @@ export function BookingModal({ service, isOpen, onClose, onConfirm }: BookingMod
                 </div>
               )}
             </div>
-          )}
+            )}
 
-          {/* Actions */}
-          <div className="flex gap-3 pt-4">
-            <button
-              type="button"
-              onClick={onClose}
-              className="flex-1 px-4 py-3 rounded-lg border border-white/20 bg-[#0A2640] text-white hover:bg-white/10 transition-colors font-medium"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="flex-1 px-4 py-3 rounded-lg bg-gradient-to-r from-[#69E6A6] to-[#5dd195] hover:from-[#5dd195] hover:to-[#4fb882] text-[#0A2640] font-semibold transition-all hover:scale-105 shadow-lg shadow-[#69E6A6]/30"
-            >
-              Confirm Booking
-            </button>
-          </div>
-        </form>
+            {/* Actions */}
+            <div className="flex gap-3 pt-4">
+              <button
+                type="button"
+                onClick={onClose}
+                className="flex-1 px-4 py-3 rounded-lg border border-white/20 bg-[#0A2640] text-white hover:bg-white/10 transition-colors font-medium"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="flex-1 px-4 py-3 rounded-lg bg-gradient-to-r from-[#69E6A6] to-[#5dd195] hover:from-[#5dd195] hover:to-[#4fb882] text-[#0A2640] font-semibold transition-all hover:scale-105 shadow-lg shadow-[#69E6A6]/30"
+              >
+                Confirm Booking
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   );

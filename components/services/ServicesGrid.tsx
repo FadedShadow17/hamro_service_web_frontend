@@ -2,9 +2,8 @@
 
 import { useState } from 'react';
 import { Service } from '@/lib/api/services.api';
-import Link from 'next/link';
-import Image from 'next/image';
 import { BookingModal } from './BookingModal';
+import { ServiceDetailsModal } from './ServiceDetailsModal';
 import { useToastContext } from '@/providers/ToastProvider';
 import { HttpError } from '@/lib/api/http';
 
@@ -15,6 +14,7 @@ interface ServicesGridProps {
 export function ServicesGrid({ services }: ServicesGridProps) {
   const [selectedService, setSelectedService] = useState<Service | null>(null);
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const toast = useToastContext();
 
   const handleBookService = (service: Service) => {
@@ -22,9 +22,24 @@ export function ServicesGrid({ services }: ServicesGridProps) {
     setIsBookingModalOpen(true);
   };
 
-  const handleCloseModal = () => {
+  const handleShowDetails = (service: Service) => {
+    setSelectedService(service);
+    setIsDetailsModalOpen(true);
+  };
+
+  const handleCloseBookingModal = () => {
     setIsBookingModalOpen(false);
     setSelectedService(null);
+  };
+
+  const handleCloseDetailsModal = () => {
+    setIsDetailsModalOpen(false);
+    setSelectedService(null);
+  };
+
+  const handleBookFromDetails = () => {
+    setIsDetailsModalOpen(false);
+    setIsBookingModalOpen(true);
   };
 
   const handleConfirmBooking = async (bookingData: {
@@ -47,7 +62,7 @@ export function ServicesGrid({ services }: ServicesGridProps) {
         bookingPayload.providerId = bookingData.providerId;
       }
       await createBooking(bookingPayload);
-      handleCloseModal();
+      handleCloseBookingModal();
       toast.success('Booking created successfully!');
       // Refresh the page after a short delay to show the toast
       setTimeout(() => {
@@ -58,7 +73,7 @@ export function ServicesGrid({ services }: ServicesGridProps) {
         // Handle expected "no provider available" scenarios gracefully (don't show Next.js error overlay)
         if (error.code === 'NO_PROVIDER_AVAILABLE' || error.code === 'NO_PROVIDER_ASSIGNED') {
           toast.info(error.message || 'Booking created! A provider will be assigned soon.');
-          handleCloseModal();
+          handleCloseBookingModal();
           // Don't throw - prevent Next.js error overlay
           return;
         }
@@ -116,12 +131,12 @@ export function ServicesGrid({ services }: ServicesGridProps) {
                 >
                   Book Now
                 </button>
-                <Link
-                  href={`/services/${service.id}`}
-                  className="px-4 py-2.5 rounded-lg border border-white/20 bg-[#0A2640] text-white hover:bg-white/10 hover:border-[#69E6A6]/50 transition-all font-medium text-sm"
+                <button
+                  onClick={() => handleShowDetails(service)}
+                  className="flex-1 px-4 py-2.5 rounded-lg border border-white/20 bg-[#0A2640] text-white hover:bg-white/10 hover:border-[#69E6A6]/50 transition-all font-medium text-sm"
                 >
                   Details
-                </Link>
+                </button>
               </div>
             </div>
           </div>
@@ -132,8 +147,16 @@ export function ServicesGrid({ services }: ServicesGridProps) {
       <BookingModal
         service={selectedService}
         isOpen={isBookingModalOpen}
-        onClose={handleCloseModal}
+        onClose={handleCloseBookingModal}
         onConfirm={handleConfirmBooking}
+      />
+
+      {/* Service Details Modal */}
+      <ServiceDetailsModal
+        service={selectedService}
+        isOpen={isDetailsModalOpen}
+        onClose={handleCloseDetailsModal}
+        onBookNow={handleBookFromDetails}
       />
     </>
   );

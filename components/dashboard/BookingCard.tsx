@@ -24,6 +24,47 @@ export function BookingCard({
   showUser = false,
   className = '',
 }: BookingCardProps) {
+  // Helper to render phone link/button - use button when inside a Link to avoid nested <a> tags
+  const renderPhoneLink = (phone: string, additionalClassName: string = '') => {
+    const phoneIcon = (
+      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+      </svg>
+    );
+
+    const baseClassName = `text-[#69E6A6] hover:text-[#5dd195] transition-colors flex items-center gap-1 ${additionalClassName}`;
+
+    // If inside a Link, use button to avoid nested <a> tags
+    if (href) {
+      return (
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            e.preventDefault();
+            window.location.href = `tel:${phone}`;
+          }}
+          className={baseClassName}
+        >
+          {phoneIcon}
+          {phone}
+        </button>
+      );
+    }
+
+    // Otherwise, use regular <a> tag
+    return (
+      <a
+        href={`tel:${phone}`}
+        onClick={(e) => e.stopPropagation()}
+        className={baseClassName}
+      >
+        {phoneIcon}
+        {phone}
+      </a>
+    );
+  };
+
   const cardContent = (
     <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
       <div className="flex-1">
@@ -77,18 +118,7 @@ export function BookingCard({
               <span className="font-medium">
                 Provider: {booking.provider.fullName || booking.provider.serviceRole || 'Provider'}
               </span>
-              {booking.provider.phone && (
-                <a
-                  href={`tel:${booking.provider.phone}`}
-                  className="text-[#69E6A6] hover:text-[#5dd195] transition-colors flex items-center gap-1 ml-2"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                  </svg>
-                  {booking.provider.phone}
-                </a>
-              )}
+              {booking.provider.phone && renderPhoneLink(booking.provider.phone, 'ml-2')}
             </div>
           )}
           {showUser && booking.user && (
@@ -97,18 +127,7 @@ export function BookingCard({
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
               </svg>
               <span className="font-medium">Customer: {booking.user.name}</span>
-              {booking.user.phone && (
-                <a
-                  href={`tel:${booking.user.phone}`}
-                  className="text-[#69E6A6] hover:text-[#5dd195] transition-colors flex items-center gap-1"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                  </svg>
-                  {booking.user.phone}
-                </a>
-              )}
+              {booking.user.phone && renderPhoneLink(booking.user.phone)}
             </div>
           )}
         </div>

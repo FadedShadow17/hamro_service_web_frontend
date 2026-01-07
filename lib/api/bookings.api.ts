@@ -100,9 +100,13 @@ export async function getProviderBookings(status?: BookingStatus | 'ALL'): Promi
 /**
  * Cancel booking (user only)
  * PATCH /api/bookings/:id/cancel
+ * 
+ * @param bookingId - The MongoDB _id of the booking (booking.id from Booking interface)
+ * @throws HttpError with code 'BOOKING_NOT_OWNED' if booking doesn't belong to user
  */
 export async function cancelBooking(bookingId: string): Promise<Booking> {
   try {
+    // Ensure bookingId is the MongoDB _id (not a reference string)
     const response = await http<{ message: string; booking: Booking }>(
       `/api/bookings/${bookingId}/cancel`,
       {
