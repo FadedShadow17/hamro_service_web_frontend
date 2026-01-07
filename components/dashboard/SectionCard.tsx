@@ -20,7 +20,7 @@ export function SectionCard({
   className = '',
 }: SectionCardProps) {
   return (
-    <div className={`rounded-2xl bg-[#1C3D5B] border border-white/10 p-6 ${className}`}>
+    <div className={`rounded-2xl bg-[#1C3D5B] border border-white/10 p-6 transition-all duration-300 hover:border-white/20 ${className}`}>
       <div className="flex items-center justify-between mb-6">
         <div>
           <h2 className="text-xl font-bold text-white mb-1">{title}</h2>
@@ -29,7 +29,7 @@ export function SectionCard({
         {actionLink && (
           <Link
             href={actionLink.href}
-            className="text-[#69E6A6] hover:text-[#5dd195] text-sm font-medium transition-colors"
+            className="text-[#69E6A6] hover:text-[#5dd195] text-sm font-medium transition-all duration-300 hover:translate-x-1 flex items-center gap-1"
           >
             {actionLink.text} →
           </Link>

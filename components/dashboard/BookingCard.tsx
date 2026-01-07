@@ -116,7 +116,7 @@ export function BookingCard({
     </div>
   );
 
-  const baseClasses = `rounded-xl bg-[#0A2640] border border-white/5 p-4 hover:border-[#69E6A6]/30 transition-all ${className}`;
+  const baseClasses = `rounded-xl bg-[#0A2640] border border-white/5 p-4 hover:border-[#69E6A6]/30 transition-all duration-300 hover:shadow-lg hover:shadow-[#69E6A6]/10 ${className}`;
 
   if (href) {
     return (

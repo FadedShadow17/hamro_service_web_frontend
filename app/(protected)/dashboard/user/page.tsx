@@ -7,6 +7,7 @@ import { RouteGuard } from '@/components/auth/RouteGuard';
 import { getServices, type Service } from '@/lib/api/services.api';
 import { getMyBookings, type Booking } from '@/lib/api/bookings.api';
 import { ServicesGrid } from '@/components/services/ServicesGrid';
+import { StatCard, SectionCard, BookingCard } from '@/components/dashboard';
 import Link from 'next/link';
 
 export default function UserDashboardPage() {
@@ -128,234 +129,118 @@ export default function UserDashboardPage() {
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-20">
           <div className="max-w-7xl mx-auto">
             {/* Header Section */}
-            <div className="mb-8">
+            <div className="mb-10">
               <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">
                 Welcome back, {user.name}! 👋
               </h1>
-              <p className="text-white/70">Browse and book services for your home</p>
+              <p className="text-white/70 text-lg">Browse and book services for your home</p>
             </div>
 
             {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-              <Link
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+              <StatCard
+                value={pendingBookings.length}
+                label="Active Bookings"
+                icon={
+                  <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                  </svg>
+                }
+                color="green"
                 href="/dashboard/user/bookings"
-                className="group relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#69E6A6]/30 via-[#69E6A6]/15 to-[#69E6A6]/5 p-6 border border-[#69E6A6]/40 hover:border-[#69E6A6]/60 transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl hover:shadow-[#69E6A6]/20"
-              >
-                {/* Animated background pattern */}
-                <div className="absolute inset-0 opacity-10">
-                  <div className="absolute top-0 right-0 w-32 h-32 bg-[#69E6A6] rounded-full blur-3xl group-hover:scale-150 transition-transform duration-700"></div>
-                  <div className="absolute bottom-0 left-0 w-24 h-24 bg-[#69E6A6] rounded-full blur-2xl group-hover:scale-125 transition-transform duration-500"></div>
-                </div>
-                
-                <div className="relative z-10">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="relative">
-                      <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#69E6A6] to-[#5dd195] flex items-center justify-center group-hover:rotate-12 group-hover:scale-110 transition-all duration-300 shadow-lg shadow-[#69E6A6]/30">
-                        <svg className="w-7 h-7 text-[#0A2640]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                        </svg>
-                      </div>
-                      <div className="absolute -top-1 -right-1 w-4 h-4 bg-[#69E6A6] rounded-full animate-pulse"></div>
-                    </div>
-                    <svg className="w-6 h-6 text-[#69E6A6] group-hover:translate-x-2 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
-                  </div>
-                  <div className="space-y-1">
-                    <h3 className="text-white font-bold text-3xl mb-1 group-hover:text-[#69E6A6] transition-colors">{pendingBookings.length}</h3>
-                    <p className="text-white/80 text-sm font-medium">Active Bookings</p>
-                    <div className="h-1 w-full bg-white/10 rounded-full overflow-hidden mt-2">
-                      <div className="h-full bg-[#69E6A6] rounded-full" style={{ width: `${Math.min((pendingBookings.length / 10) * 100, 100)}%` }}></div>
-                    </div>
-                  </div>
-                </div>
-              </Link>
+                progress={Math.min((pendingBookings.length / 10) * 100, 100)}
+              />
 
-              <Link
+              <StatCard
+                value={completedBookings.length}
+                label="Completed"
+                icon={
+                  <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                }
+                color="blue"
                 href="/dashboard/user/bookings?status=COMPLETED"
-                className="group relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#4A9EFF]/30 via-[#4A9EFF]/15 to-[#4A9EFF]/5 p-6 border border-[#4A9EFF]/40 hover:border-[#4A9EFF]/60 transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl hover:shadow-[#4A9EFF]/20"
-              >
-                {/* Animated background pattern */}
-                <div className="absolute inset-0 opacity-10">
-                  <div className="absolute top-0 left-0 w-32 h-32 bg-[#4A9EFF] rounded-full blur-3xl group-hover:scale-150 transition-transform duration-700"></div>
-                  <div className="absolute bottom-0 right-0 w-24 h-24 bg-[#4A9EFF] rounded-full blur-2xl group-hover:scale-125 transition-transform duration-500"></div>
-                </div>
-                
-                <div className="relative z-10">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="relative">
-                      <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#4A9EFF] to-[#3a8eef] flex items-center justify-center group-hover:rotate-12 group-hover:scale-110 transition-all duration-300 shadow-lg shadow-[#4A9EFF]/30">
-                        <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                      </div>
-                      <div className="absolute -top-1 -right-1 w-4 h-4 bg-[#4A9EFF] rounded-full animate-pulse"></div>
-                    </div>
-                    <svg className="w-6 h-6 text-[#4A9EFF] group-hover:translate-x-2 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
-                  </div>
-                  <div className="space-y-1">
-                    <h3 className="text-white font-bold text-3xl mb-1 group-hover:text-[#4A9EFF] transition-colors">{completedBookings.length}</h3>
-                    <p className="text-white/80 text-sm font-medium">Completed</p>
-                    <div className="h-1 w-full bg-white/10 rounded-full overflow-hidden mt-2">
-                      <div className="h-full bg-[#4A9EFF] rounded-full" style={{ width: `${Math.min((completedBookings.length / 10) * 100, 100)}%` }}></div>
-                    </div>
-                  </div>
-                </div>
-              </Link>
+                progress={Math.min((completedBookings.length / 10) * 100, 100)}
+              />
 
-              <button
+              <StatCard
+                value={services.length}
+                label="Available Services"
+                icon={
+                  <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  </svg>
+                }
+                color="orange"
                 onClick={() => {
                   const servicesSection = document.getElementById('services');
                   if (servicesSection) {
                     servicesSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
                   }
                 }}
-                className="group relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#FFA500]/30 via-[#FFA500]/15 to-[#FFA500]/5 p-6 border border-[#FFA500]/40 hover:border-[#FFA500]/60 transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl hover:shadow-[#FFA500]/20 cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#FFA500]/50 focus:ring-offset-2 focus:ring-offset-[#0A2640]"
-              >
-                {/* Animated background pattern */}
-                <div className="absolute inset-0 opacity-10">
-                  <div className="absolute top-0 right-0 w-32 h-32 bg-[#FFA500] rounded-full blur-3xl group-hover:scale-150 transition-transform duration-700"></div>
-                  <div className="absolute bottom-0 left-0 w-24 h-24 bg-[#FFA500] rounded-full blur-2xl group-hover:scale-125 transition-transform duration-500"></div>
-                </div>
-                
-                <div className="relative z-10">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="relative">
-                      <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#FFA500] to-[#ff9500] flex items-center justify-center group-hover:rotate-12 group-hover:scale-110 transition-all duration-300 shadow-lg shadow-[#FFA500]/30">
-                        <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                        </svg>
-                      </div>
-                      <div className="absolute -top-1 -right-1 w-4 h-4 bg-[#FFA500] rounded-full animate-pulse"></div>
-                    </div>
-                    <svg className="w-6 h-6 text-[#FFA500] group-hover:translate-x-2 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
-                  </div>
-                  <div className="space-y-1">
-                    <h3 className="text-white font-bold text-3xl mb-1 group-hover:text-[#FFA500] transition-colors">{services.length}</h3>
-                    <p className="text-white/80 text-sm font-medium">Available Services</p>
-                    <div className="h-1 w-full bg-white/10 rounded-full overflow-hidden mt-2">
-                      <div className="h-full bg-[#FFA500] rounded-full" style={{ width: `${Math.min((services.length / 20) * 100, 100)}%` }}></div>
-                    </div>
-                  </div>
-                </div>
-              </button>
+                progress={Math.min((services.length / 20) * 100, 100)}
+              />
 
-              <Link
+              <StatCard
+                value={payableBookings.length}
+                label="Payments"
+                icon={
+                  <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                  </svg>
+                }
+                color="purple"
                 href="/dashboard/user/payments"
-                className="group relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#9B59B6]/30 via-[#9B59B6]/15 to-[#9B59B6]/5 p-6 border border-[#9B59B6]/40 hover:border-[#9B59B6]/60 transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl hover:shadow-[#9B59B6]/20"
-              >
-                {/* Animated background pattern */}
-                <div className="absolute inset-0 opacity-10">
-                  <div className="absolute top-0 left-0 w-32 h-32 bg-[#9B59B6] rounded-full blur-3xl group-hover:scale-150 transition-transform duration-700"></div>
-                  <div className="absolute bottom-0 right-0 w-24 h-24 bg-[#9B59B6] rounded-full blur-2xl group-hover:scale-125 transition-transform duration-500"></div>
-                </div>
-                
-                <div className="relative z-10">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="relative">
-                      <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#9B59B6] to-[#8e44ad] flex items-center justify-center group-hover:rotate-12 group-hover:scale-110 transition-all duration-300 shadow-lg shadow-[#9B59B6]/30">
-                        <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-                        </svg>
-                      </div>
-                      <div className="absolute -top-1 -right-1 w-4 h-4 bg-[#9B59B6] rounded-full animate-pulse"></div>
-                    </div>
-                    <svg className="w-6 h-6 text-[#9B59B6] group-hover:translate-x-2 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
-                  </div>
-                  <div className="space-y-1">
-                    <h3 className="text-white font-bold text-3xl mb-1 group-hover:text-[#9B59B6] transition-colors">{payableBookings.length}</h3>
-                    <p className="text-white/80 text-sm font-medium">Payments</p>
-                    <div className="h-1 w-full bg-white/10 rounded-full overflow-hidden mt-2">
-                      <div className="h-full bg-[#9B59B6] rounded-full" style={{ width: `${Math.min((payableBookings.length / 10) * 100, 100)}%` }}></div>
-                    </div>
-                  </div>
-                </div>
-              </Link>
+                progress={Math.min((payableBookings.length / 10) * 100, 100)}
+              />
             </div>
 
             {/* Recent Bookings Section */}
             {bookings.length > 0 && (
-              <div className="mb-8">
-                <div className="rounded-2xl bg-[#1C3D5B] border border-white/10 p-6">
-                  <div className="flex items-center justify-between mb-6">
-                    <div>
-                      <h2 className="text-xl font-bold text-white mb-1">Recent Bookings</h2>
-                      <p className="text-white/70 text-sm">Your latest service bookings</p>
-                    </div>
-                    <Link
-                      href="/dashboard/user/bookings"
-                      className="text-[#69E6A6] hover:text-[#5dd195] text-sm font-medium transition-colors"
-                    >
-                      View All →
-                    </Link>
-                  </div>
+              <div className="mb-10">
+                <SectionCard
+                  title="Recent Bookings"
+                  subtitle="Your latest service bookings"
+                  actionLink={{
+                    href: '/dashboard/user/bookings',
+                    text: 'View All',
+                  }}
+                >
                   <div className="space-y-4">
                     {bookings
                       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
                       .slice(0, 5)
-                      .map((booking) => {
-                        const getStatusColor = (status: string) => {
-                          const colors: Record<string, string> = {
-                            PENDING: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/50',
-                            CONFIRMED: 'bg-[#69E6A6]/20 text-[#69E6A6] border-[#69E6A6]/50',
-                            COMPLETED: 'bg-blue-500/20 text-blue-400 border-blue-500/50',
-                            DECLINED: 'bg-red-500/20 text-red-400 border-red-500/50',
-                            CANCELLED: 'bg-gray-500/20 text-gray-400 border-gray-500/50',
-                          };
-                          return colors[status] || 'bg-white/10 text-white/70 border-white/20';
-                        };
-                        return (
-                          <Link
-                            key={booking.id}
-                            href="/dashboard/user/bookings"
-                            className="block rounded-xl bg-[#0A2640] border border-white/5 p-4 hover:border-[#69E6A6]/30 transition-all"
-                          >
-                            <div className="flex items-center justify-between mb-2">
-                              <span className={`px-2 py-1 rounded text-xs font-semibold border ${getStatusColor(booking.status)}`}>
-                                {booking.status}
-                              </span>
-                              <span className="text-white/60 text-sm">
-                                {new Date(`${booking.date}T${booking.timeSlot}`).toLocaleDateString('en-US', {
-                                  month: 'short',
-                                  day: 'numeric',
-                                  hour: '2-digit',
-                                  minute: '2-digit',
-                                })}
-                              </span>
-                            </div>
-                            <p className="text-white font-medium mb-1">Booking #{booking.id.slice(0, 8)}</p>
-                            <p className="text-white/60 text-sm">{booking.area}</p>
-                          </Link>
-                        );
-                      })}
+                      .map((booking) => (
+                        <BookingCard
+                          key={booking.id}
+                          booking={booking}
+                          href="/dashboard/user/bookings"
+                          showProvider={true}
+                        />
+                      ))}
                   </div>
-                </div>
+                </SectionCard>
               </div>
             )}
 
             {/* Quick Actions */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
               <Link
                 href="/dashboard/user/bookings"
-                className="group rounded-2xl bg-[#1C3D5B] p-6 border border-white/10 hover:border-[#69E6A6]/50 transition-all duration-300 hover:scale-105"
+                className="group rounded-2xl bg-gradient-to-br from-[#1C3D5B] to-[#0A2640] p-6 border border-white/10 hover:border-[#69E6A6]/50 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:shadow-[#69E6A6]/10"
               >
                 <div className="flex items-center space-x-4">
-                  <div className="w-14 h-14 rounded-xl bg-[#69E6A6]/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-[#69E6A6]/20 to-[#69E6A6]/10 flex items-center justify-center group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 shadow-lg shadow-[#69E6A6]/20">
                     <svg className="w-7 h-7 text-[#69E6A6]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                     </svg>
                   </div>
                   <div className="flex-1">
-                    <h3 className="text-white font-bold text-xl mb-1">My Bookings</h3>
+                    <h3 className="text-white font-bold text-xl mb-1 group-hover:text-[#69E6A6] transition-colors">My Bookings</h3>
                     <p className="text-white/70 text-sm">View and manage your service bookings</p>
                   </div>
-                  <svg className="w-6 h-6 text-[#69E6A6] group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-6 h-6 text-[#69E6A6] group-hover:translate-x-2 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                   </svg>
                 </div>
@@ -363,19 +248,19 @@ export default function UserDashboardPage() {
 
               <Link
                 href="/contact"
-                className="group rounded-2xl bg-[#1C3D5B] p-6 border border-white/10 hover:border-[#4A9EFF]/50 transition-all duration-300 hover:scale-105"
+                className="group rounded-2xl bg-gradient-to-br from-[#1C3D5B] to-[#0A2640] p-6 border border-white/10 hover:border-[#4A9EFF]/50 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:shadow-[#4A9EFF]/10"
               >
                 <div className="flex items-center space-x-4">
-                  <div className="w-14 h-14 rounded-xl bg-[#4A9EFF]/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-[#4A9EFF]/20 to-[#4A9EFF]/10 flex items-center justify-center group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 shadow-lg shadow-[#4A9EFF]/20">
                     <svg className="w-7 h-7 text-[#4A9EFF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                     </svg>
                   </div>
                   <div className="flex-1">
-                    <h3 className="text-white font-bold text-xl mb-1">Contact Us</h3>
+                    <h3 className="text-white font-bold text-xl mb-1 group-hover:text-[#4A9EFF] transition-colors">Contact Us</h3>
                     <p className="text-white/70 text-sm">Get help anytime you need it</p>
                   </div>
-                  <svg className="w-6 h-6 text-[#4A9EFF] group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-6 h-6 text-[#4A9EFF] group-hover:translate-x-2 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                   </svg>
                 </div>
@@ -383,13 +268,13 @@ export default function UserDashboardPage() {
             </div>
 
             {/* Services Section */}
-            <div id="services" className="mb-8 scroll-mt-20">
+            <div id="services" className="mb-10 scroll-mt-20">
               <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
                 <div>
                   <h2 className="text-2xl md:text-3xl font-bold text-white mb-2">
                     Browse Services
                   </h2>
-                  <p className="text-white/70">Discover professional services for your home</p>
+                  <p className="text-white/70 text-lg">Discover professional services for your home</p>
                 </div>
               </div>
 
