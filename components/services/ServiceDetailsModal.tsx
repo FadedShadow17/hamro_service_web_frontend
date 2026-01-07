@@ -1,6 +1,7 @@
 'use client';
 
 import { Service } from '@/lib/api/services.api';
+import { getServiceIcon } from './serviceIcons';
 
 interface ServiceDetailsModalProps {
   service: Service | null;
@@ -44,10 +45,32 @@ export function ServiceDetailsModal({ service, isOpen, onClose, onBookNow }: Ser
         {/* Content - Scrollable */}
         <div className="overflow-y-auto max-h-[calc(90vh-180px)]">
           <div className="p-6 space-y-6">
-            {/* Service Icon */}
-            <div className="flex justify-center">
-              <div className="w-24 h-24 rounded-2xl bg-gradient-to-br from-[#69E6A6]/20 to-[#4A9EFF]/20 flex items-center justify-center">
-                <span className="text-5xl">{service.icon || '🔧'}</span>
+            {/* Service Icon - Centered */}
+            <div className="flex flex-col items-center gap-3">
+              <div className="relative w-24 h-24 rounded-2xl bg-gradient-to-br from-[#69E6A6]/20 to-[#4A9EFF]/20 flex items-center justify-center">
+                <div className="text-white/80">
+                  {getServiceIcon(service.name, 12)}
+                </div>
+                {/* Status Badge - Positioned at top right of icon */}
+                <span
+                  className={`absolute -top-2 -right-2 px-2.5 py-1 rounded-full text-xs font-semibold inline-flex items-center gap-1.5 shadow-lg ${
+                    service.isActive
+                      ? 'bg-[#69E6A6]/90 text-[#0A2640] border border-[#69E6A6]'
+                      : 'bg-red-500/90 text-white border border-red-400'
+                  }`}
+                >
+                  {service.isActive ? (
+                    <>
+                      <span className="w-1.5 h-1.5 bg-[#0A2640] rounded-full animate-pulse"></span>
+                      Active
+                    </>
+                  ) : (
+                    <>
+                      <span className="w-1.5 h-1.5 bg-white rounded-full"></span>
+                      Inactive
+                    </>
+                  )}
+                </span>
               </div>
             </div>
 
@@ -73,20 +96,6 @@ export function ServiceDetailsModal({ service, isOpen, onClose, onBookNow }: Ser
               <div className="flex items-center justify-between">
                 <span className="text-white/70 text-sm">Service ID</span>
                 <span className="text-white/90 text-sm font-mono">{service.id}</span>
-              </div>
-
-              {/* Status */}
-              <div className="flex items-center justify-between">
-                <span className="text-white/70 text-sm">Status</span>
-                <span
-                  className={`px-3 py-1 rounded-full text-xs font-medium ${
-                    service.isActive
-                      ? 'bg-[#69E6A6]/20 text-[#69E6A6] border border-[#69E6A6]/30'
-                      : 'bg-red-500/20 text-red-400 border border-red-500/30'
-                  }`}
-                >
-                  {service.isActive ? 'Active' : 'Inactive'}
-                </span>
               </div>
             </div>
           </div>

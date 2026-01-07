@@ -19,6 +19,7 @@ export default function UserDashboardPage() {
   const [error, setError] = useState<string>('');
   const [mounted, setMounted] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [sortBy, setSortBy] = useState<'name' | 'price' | 'newest'>('name');
 
   useEffect(() => {
     setMounted(true);
@@ -92,7 +93,7 @@ export default function UserDashboardPage() {
   };
 
   const filteredServices = useMemo(() => {
-    let filtered = services;
+    let filtered = [...services];
 
     // Filter by search query
     if (searchQuery.trim()) {
@@ -100,12 +101,28 @@ export default function UserDashboardPage() {
       filtered = filtered.filter(
         (service) =>
           service.name.toLowerCase().includes(query) ||
-          service.description.toLowerCase().includes(query)
+          service.description?.toLowerCase().includes(query)
       );
     }
 
+    // Sort services
+    filtered.sort((a, b) => {
+      switch (sortBy) {
+        case 'name':
+          return a.name.localeCompare(b.name);
+        case 'price':
+          const priceA = a.basePrice || 0;
+          const priceB = b.basePrice || 0;
+          return priceA - priceB;
+        case 'newest':
+          return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
+        default:
+          return 0;
+      }
+    });
+
     return filtered;
-  }, [services, searchQuery]);
+  }, [services, searchQuery, sortBy]);
 
   const pendingBookings = bookings.filter((b) => b.status === 'PENDING' || b.status === 'CONFIRMED');
   const completedBookings = bookings.filter((b) => b.status === 'COMPLETED');
@@ -280,41 +297,102 @@ export default function UserDashboardPage() {
 
               {/* Search and Filter */}
               <div className="mb-6 space-y-4">
-                {/* Search Bar */}
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 flex items-center pl-4">
-                    <svg className="w-5 h-5 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                    </svg>
+                <div className="flex flex-col sm:flex-row gap-4">
+                  {/* Search Bar */}
+                  <div className="relative flex-1">
+                    <div className="absolute inset-y-0 left-0 flex items-center pl-4">
+                      <svg className="w-5 h-5 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                      </svg>
+                    </div>
+                    <input
+                      type="text"
+                      placeholder="Search services by name or description..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="w-full pl-12 pr-4 py-3 rounded-xl bg-[#1C3D5B] border border-white/10 text-white placeholder-white/50 focus:border-[#69E6A6] focus:outline-none focus:ring-2 focus:ring-[#69E6A6]/20 transition-all"
+                    />
+                    {searchQuery && (
+                      <button
+                        onClick={() => setSearchQuery('')}
+                        className="absolute inset-y-0 right-0 flex items-center pr-4 text-white/50 hover:text-white transition-colors"
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    )}
                   </div>
-                  <input
-                    type="text"
-                    placeholder="Search services..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-12 pr-4 py-3 rounded-xl bg-[#1C3D5B] border border-white/10 text-white placeholder-white/50 focus:border-[#69E6A6] focus:outline-none focus:ring-2 focus:ring-[#69E6A6]/20 transition-all"
-                  />
+
+                  {/* Sort Dropdown */}
+                  <div className="relative sm:w-48">
+                    <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
+                      <svg className="w-5 h-5 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12" />
+                      </svg>
+                    </div>
+                    <select
+                      value={sortBy}
+                      onChange={(e) => setSortBy(e.target.value as 'name' | 'price' | 'newest')}
+                      className="w-full pl-12 pr-10 py-3 rounded-xl bg-[#1C3D5B] border border-white/10 text-white focus:border-[#69E6A6] focus:outline-none focus:ring-2 focus:ring-[#69E6A6]/20 transition-all appearance-none cursor-pointer"
+                    >
+                      <option value="name" className="bg-[#1C3D5B]">Sort by Name</option>
+                      <option value="price" className="bg-[#1C3D5B]">Sort by Price</option>
+                      <option value="newest" className="bg-[#1C3D5B]">Newest First</option>
+                    </select>
+                    <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                      <svg className="w-5 h-5 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              {/* Results Count */}
+              {/* Results Count and Active Filters */}
               {!loading && (
-                <div className="mb-4">
+                <div className="mb-4 flex flex-wrap items-center gap-3">
                   <p className="text-white/70 text-sm">
-                    Showing <span className="font-semibold text-white">{filteredServices.length}</span> of <span className="font-semibold text-white">{services.length}</span> service
+                    Showing <span className="font-semibold text-[#69E6A6]">{filteredServices.length}</span> of <span className="font-semibold text-white">{services.length}</span> service
                     {services.length !== 1 ? 's' : ''}
-                    {searchQuery && ` matching "${searchQuery}"`}
                   </p>
+                  {searchQuery && (
+                    <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-[#69E6A6]/20 border border-[#69E6A6]/30">
+                      <span className="text-[#69E6A6] text-xs font-medium">Search: "{searchQuery}"</span>
+                      <button
+                        onClick={() => setSearchQuery('')}
+                        className="text-[#69E6A6] hover:text-white transition-colors"
+                      >
+                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </div>
+                  )}
+                  {sortBy !== 'name' && (
+                    <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-[#4A9EFF]/20 border border-[#4A9EFF]/30">
+                      <span className="text-[#4A9EFF] text-xs font-medium">
+                        {sortBy === 'price' ? 'Sorted by Price' : 'Newest First'}
+                      </span>
+                    </div>
+                  )}
                 </div>
               )}
 
               {loading ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                   {[...Array(8)].map((_, i) => (
-                    <div key={i} className="rounded-2xl bg-[#1C3D5B] border border-white/10 p-5 animate-pulse">
-                      <div className="h-48 bg-white/10 rounded-xl mb-4"></div>
-                      <div className="h-6 bg-white/10 rounded mb-2"></div>
-                      <div className="h-4 bg-white/10 rounded w-3/4"></div>
+                    <div key={i} className="rounded-2xl bg-[#1C3D5B] border border-white/10 overflow-hidden animate-pulse">
+                      <div className="h-52 bg-gradient-to-br from-white/10 to-white/5"></div>
+                      <div className="p-5 space-y-3">
+                        <div className="h-6 bg-white/10 rounded w-3/4"></div>
+                        <div className="h-4 bg-white/10 rounded w-full"></div>
+                        <div className="h-4 bg-white/10 rounded w-2/3"></div>
+                        <div className="flex gap-2 mt-4">
+                          <div className="h-10 bg-white/10 rounded-lg flex-1"></div>
+                          <div className="h-10 bg-white/10 rounded-lg w-12"></div>
+                        </div>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -333,27 +411,32 @@ export default function UserDashboardPage() {
                   </button>
                 </div>
               ) : filteredServices.length === 0 && services.length === 0 ? (
-                <div className="rounded-2xl bg-[#1C3D5B] border border-white/10 p-12 text-center">
-                  <svg className="w-16 h-16 text-white/30 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                  </svg>
-                  <p className="text-white/70 text-lg mb-2">No services available</p>
-                  <p className="text-white/50 text-sm mb-4">
+                <div className="rounded-2xl bg-gradient-to-br from-[#1C3D5B] to-[#0A2640] border border-white/10 p-16 text-center">
+                  <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-gradient-to-br from-[#69E6A6]/20 to-[#4A9EFF]/20 flex items-center justify-center">
+                    <svg className="w-12 h-12 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-white text-xl font-bold mb-2">No services available</h3>
+                  <p className="text-white/60 text-sm mb-6 max-w-md mx-auto">
                     The database might not have any services yet. Please seed the database or contact support.
                   </p>
-                  <p className="text-white/40 text-xs">
-                    Total services in database: {services.length}
-                  </p>
+                  <div className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-white/5 border border-white/10">
+                    <span className="text-white/50 text-xs">Total services:</span>
+                    <span className="text-white font-semibold">{services.length}</span>
+                  </div>
                 </div>
               ) : filteredServices.length === 0 ? (
-                <div className="rounded-2xl bg-[#1C3D5B] border border-white/10 p-12 text-center">
-                  <svg className="w-16 h-16 text-white/30 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                  </svg>
-                  <p className="text-white/70 text-lg mb-2">No services found</p>
-                  <p className="text-white/50 text-sm">
+                <div className="rounded-2xl bg-gradient-to-br from-[#1C3D5B] to-[#0A2640] border border-white/10 p-16 text-center">
+                  <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-gradient-to-br from-[#69E6A6]/20 to-[#4A9EFF]/20 flex items-center justify-center">
+                    <svg className="w-12 h-12 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-white text-xl font-bold mb-2">No services found</h3>
+                  <p className="text-white/60 text-sm mb-6">
                     {searchQuery
-                      ? 'Try adjusting your search'
+                      ? `No services match "${searchQuery}". Try adjusting your search terms.`
                       : 'No services available at the moment'}
                   </p>
                   {searchQuery && (
@@ -361,8 +444,11 @@ export default function UserDashboardPage() {
                       onClick={() => {
                         setSearchQuery('');
                       }}
-                      className="mt-4 px-6 py-2 bg-[#69E6A6]/20 hover:bg-[#69E6A6]/30 border border-[#69E6A6]/50 rounded-lg text-[#69E6A6] transition-colors"
+                      className="px-6 py-3 bg-gradient-to-r from-[#69E6A6] to-[#5dd195] hover:from-[#5dd195] hover:to-[#4fb882] text-[#0A2640] font-semibold rounded-lg transition-all hover:scale-105 shadow-lg shadow-[#69E6A6]/30 flex items-center gap-2 mx-auto"
                     >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
                       Clear Search
                     </button>
                   )}
