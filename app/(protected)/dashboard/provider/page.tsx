@@ -291,7 +291,10 @@ export default function ProviderDashboardPage() {
                     </div>
                   </Link>
 
-                  <div className="group relative overflow-hidden rounded-3xl bg-gradient-to-br from-blue-500/30 via-blue-500/15 to-blue-500/5 p-6 border border-blue-500/40 hover:border-blue-500/60 transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl hover:shadow-blue-500/20">
+                  <Link
+                    href="/dashboard/provider/bookings?status=COMPLETED"
+                    className="group relative overflow-hidden rounded-3xl bg-gradient-to-br from-blue-500/30 via-blue-500/15 to-blue-500/5 p-6 border border-blue-500/40 hover:border-blue-500/60 transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl hover:shadow-blue-500/20"
+                  >
                     {/* Animated background pattern */}
                     <div className="absolute inset-0 opacity-10">
                       <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-700"></div>
@@ -299,8 +302,8 @@ export default function ProviderDashboardPage() {
                     </div>
                     
                     <div className="relative z-10">
-                      <div className="mb-4">
-                        <div className="relative inline-block">
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="relative">
                           <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500 to-[#3b82f6] flex items-center justify-center group-hover:rotate-12 group-hover:scale-110 transition-all duration-300 shadow-lg shadow-blue-500/30">
                             <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -308,6 +311,9 @@ export default function ProviderDashboardPage() {
                           </div>
                           <div className="absolute -top-1 -right-1 w-4 h-4 bg-blue-500 rounded-full animate-pulse"></div>
                         </div>
+                        <svg className="w-6 h-6 text-blue-400 group-hover:translate-x-2 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
                       </div>
                       <div className="space-y-1">
                         <h3 className="text-white font-bold text-3xl mb-1 group-hover:text-blue-400 transition-colors">{completedCount}</h3>
@@ -317,9 +323,12 @@ export default function ProviderDashboardPage() {
                         </div>
                       </div>
                     </div>
-                  </div>
+                  </Link>
 
-                  <div className="group relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#4A9EFF]/30 via-[#4A9EFF]/15 to-[#4A9EFF]/5 p-6 border border-[#4A9EFF]/40 hover:border-[#4A9EFF]/60 transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl hover:shadow-[#4A9EFF]/20">
+                  <Link
+                    href="/dashboard/provider/bookings"
+                    className="group relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#4A9EFF]/30 via-[#4A9EFF]/15 to-[#4A9EFF]/5 p-6 border border-[#4A9EFF]/40 hover:border-[#4A9EFF]/60 transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl hover:shadow-[#4A9EFF]/20"
+                  >
                     {/* Animated background pattern */}
                     <div className="absolute inset-0 opacity-10">
                       <div className="absolute top-0 left-0 w-32 h-32 bg-[#4A9EFF] rounded-full blur-3xl group-hover:scale-150 transition-transform duration-700"></div>
@@ -327,8 +336,8 @@ export default function ProviderDashboardPage() {
                     </div>
                     
                     <div className="relative z-10">
-                      <div className="mb-4">
-                        <div className="relative inline-block">
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="relative">
                           <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#4A9EFF] to-[#3a8eef] flex items-center justify-center group-hover:rotate-12 group-hover:scale-110 transition-all duration-300 shadow-lg shadow-[#4A9EFF]/30">
                             <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
@@ -336,6 +345,9 @@ export default function ProviderDashboardPage() {
                           </div>
                           <div className="absolute -top-1 -right-1 w-4 h-4 bg-[#4A9EFF] rounded-full animate-pulse"></div>
                         </div>
+                        <svg className="w-6 h-6 text-[#4A9EFF] group-hover:translate-x-2 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
                       </div>
                       <div className="space-y-1">
                         <h3 className="text-white font-bold text-3xl mb-1 group-hover:text-[#4A9EFF] transition-colors">{totalCount}</h3>
@@ -345,7 +357,7 @@ export default function ProviderDashboardPage() {
                         </div>
                       </div>
                     </div>
-                  </div>
+                  </Link>
                 </div>
 
                 {/* Quick Actions */}
