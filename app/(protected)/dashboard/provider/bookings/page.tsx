@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { getUser, isProvider } from '@/lib/auth/auth.storage';
 import { RouteGuard } from '@/components/auth/RouteGuard';
 import { getProviderBookings, acceptBooking, declineBooking, completeBooking, type Booking, type BookingStatus } from '@/lib/api/bookings.api';
+import { getVerificationStatus, type VerificationData } from '@/lib/api/provider-verification.api';
 import { HttpError } from '@/lib/api/http';
 import { useToastContext } from '@/providers/ToastProvider';
 
@@ -19,6 +20,7 @@ export default function ProviderBookingsPage() {
   const [filter, setFilter] = useState<BookingStatus | 'ALL'>('ALL');
   const [mounted, setMounted] = useState(false);
   const [actionLoading, setActionLoading] = useState<Record<string, string>>({}); // Track which action is loading for which booking
+  const [providerVerification, setProviderVerification] = useState<VerificationData | null>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -33,6 +35,14 @@ export default function ProviderBookingsPage() {
     // Wrap in async function to properly handle errors and prevent Next.js error overlay
     const loadData = async () => {
       try {
+        // Load verification status to get serviceRole for category checking
+        try {
+          const verification = await getVerificationStatus();
+          setProviderVerification(verification);
+        } catch (err) {
+          // Verification might not exist yet, that's okay
+          console.info('Verification status not available:', err);
+        }
         await loadBookings();
       } catch (err) {
         // Error is already handled in loadBookings, but we catch here
@@ -99,11 +109,15 @@ export default function ProviderBookingsPage() {
           toast.error(`${err.message} Please complete your verification to accept bookings.`);
           setTimeout(() => router.push('/dashboard/provider/verification'), 2000);
         } 
-        // Handle ownership error (should be fixed by backend, but show friendly message)
-        else if (err.status === 403 && (err.code === 'UNAUTHORIZED_PROVIDER' || err.message.includes('does not belong'))) {
+        // Handle ownership error
+        else if (err.status === 403 && (err.code === 'BOOKING_NOT_ASSIGNED' || err.code === 'UNAUTHORIZED_PROVIDER' || err.message.includes('not assigned'))) {
           toast.error('This booking is not assigned to you. Please refresh the page.');
           // Auto-refresh after showing error
           setTimeout(() => loadBookings(), 1000);
+        }
+        // Handle category restriction error
+        else if (err.status === 403 && err.code === 'CATEGORY_NOT_ALLOWED') {
+          toast.error(err.message || 'You are not verified for this service category.');
         }
         // Handle other errors
         else {
@@ -132,9 +146,13 @@ export default function ProviderBookingsPage() {
     } catch (err) {
       if (err instanceof HttpError) {
         // Handle ownership error
-        if (err.status === 403 && (err.code === 'UNAUTHORIZED_PROVIDER' || err.message.includes('does not belong'))) {
+        if (err.status === 403 && (err.code === 'BOOKING_NOT_ASSIGNED' || err.code === 'UNAUTHORIZED_PROVIDER' || err.message.includes('not assigned'))) {
           toast.error('This booking is not assigned to you. Please refresh the page.');
           setTimeout(() => loadBookings(), 1000);
+        }
+        // Handle category restriction error
+        else if (err.status === 403 && err.code === 'CATEGORY_NOT_ALLOWED') {
+          toast.error(err.message || 'You are not verified for this service category.');
         } else {
           toast.error(err.message || 'Failed to decline booking. Please try again.');
         }
@@ -166,9 +184,13 @@ export default function ProviderBookingsPage() {
           setTimeout(() => router.push('/dashboard/provider/verification'), 2000);
         }
         // Handle ownership error
-        else if (err.status === 403 && (err.code === 'UNAUTHORIZED_PROVIDER' || err.message.includes('does not belong'))) {
+        else if (err.status === 403 && (err.code === 'BOOKING_NOT_ASSIGNED' || err.code === 'UNAUTHORIZED_PROVIDER' || err.message.includes('not assigned'))) {
           toast.error('This booking is not assigned to you. Please refresh the page.');
           setTimeout(() => loadBookings(), 1000);
+        }
+        // Handle category restriction error
+        else if (err.status === 403 && err.code === 'CATEGORY_NOT_ALLOWED') {
+          toast.error(err.message || 'You are not verified for this service category.');
         }
         // Handle other errors
         else {
@@ -202,6 +224,45 @@ export default function ProviderBookingsPage() {
       default:
         return 'bg-white/10 text-white border-white/20';
     }
+  };
+
+  // Map service name to expected provider role (same as backend)
+  const getExpectedRoleForService = (serviceName: string): string | null => {
+    const roleMapping: Record<string, string> = {
+      'electrical': 'Electrician',
+      'plumbing': 'Plumber',
+      'cleaning': 'Cleaner',
+      'carpentry': 'Carpenter',
+      'painting': 'Painter',
+      'hvac': 'HVAC Technician',
+      'appliance repair': 'Appliance Repair Technician',
+      'gardening': 'Gardener/Landscaper',
+      'pest control': 'Pest Control Specialist',
+      'water tank cleaning': 'Water Tank Cleaner',
+    };
+    return roleMapping[serviceName.toLowerCase().trim()] || null;
+  };
+
+  // Check if provider can accept/decline this booking
+  const canProviderActionBooking = (booking: Booking): { canAction: boolean; reason?: string } => {
+    // Check if booking has a provider assigned
+    if (!booking.providerId) {
+      return { canAction: false, reason: 'No provider assigned' };
+    }
+
+    // Check category matching if service and provider role are available
+    if (booking.service && providerVerification?.serviceRole) {
+      const expectedRole = getExpectedRoleForService(booking.service.name);
+      if (expectedRole && providerVerification.serviceRole !== expectedRole) {
+        return {
+          canAction: false,
+          reason: `Not allowed for your category. This booking requires ${expectedRole}, but you are verified as ${providerVerification.serviceRole}.`,
+        };
+      }
+    }
+
+    // If no service role mapping exists, allow (graceful fallback)
+    return { canAction: true };
   };
 
   if (!mounted || !user || !isProvider(user)) {
@@ -370,24 +431,36 @@ export default function ProviderBookingsPage() {
                       </div>
 
                       <div className="flex flex-col sm:flex-row gap-2">
-                        {booking.status === 'PENDING' && (
-                          <>
-                            <button
-                              onClick={() => handleAccept(booking.id)}
-                              disabled={actionLoading[booking.id] === 'accept'}
-                              className="px-6 py-2 bg-[#69E6A6] hover:bg-[#5dd195] text-[#0A2640] rounded-lg font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                            >
-                              {actionLoading[booking.id] === 'accept' ? 'Accepting...' : 'Accept'}
-                            </button>
-                            <button
-                              onClick={() => handleDecline(booking.id)}
-                              disabled={actionLoading[booking.id] === 'decline'}
-                              className="px-6 py-2 bg-red-500/20 hover:bg-red-500/30 border border-red-500/50 text-red-400 rounded-lg font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                            >
-                              {actionLoading[booking.id] === 'decline' ? 'Declining...' : 'Decline'}
-                            </button>
-                          </>
-                        )}
+                        {booking.status === 'PENDING' && (() => {
+                          const { canAction, reason } = canProviderActionBooking(booking);
+                          if (!canAction) {
+                            return (
+                              <div className="flex flex-col gap-2">
+                                <span className="px-4 py-2 bg-orange-500/20 border border-orange-500/50 text-orange-400 rounded-lg text-sm font-medium">
+                                  {reason || 'Not allowed for your category'}
+                                </span>
+                              </div>
+                            );
+                          }
+                          return (
+                            <>
+                              <button
+                                onClick={() => handleAccept(booking.id)}
+                                disabled={actionLoading[booking.id] === 'accept'}
+                                className="px-6 py-2 bg-[#69E6A6] hover:bg-[#5dd195] text-[#0A2640] rounded-lg font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                              >
+                                {actionLoading[booking.id] === 'accept' ? 'Accepting...' : 'Accept'}
+                              </button>
+                              <button
+                                onClick={() => handleDecline(booking.id)}
+                                disabled={actionLoading[booking.id] === 'decline'}
+                                className="px-6 py-2 bg-red-500/20 hover:bg-red-500/30 border border-red-500/50 text-red-400 rounded-lg font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                              >
+                                {actionLoading[booking.id] === 'decline' ? 'Declining...' : 'Decline'}
+                              </button>
+                            </>
+                          );
+                        })()}
                         {booking.status === 'CONFIRMED' && (
                           <button
                             onClick={() => handleComplete(booking.id)}

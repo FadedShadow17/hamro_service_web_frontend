@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import { isAuthenticated, getUser, clearAuth, type User, USER_ROLES, isUser, isProvider } from '@/lib/auth/auth.storage';
+import { getVerificationSummary, type VerificationSummary } from '@/lib/api/provider-verification.api';
 import { useScrollSpy } from '@/hooks/useScrollSpy';
 import { scrollToSection, handleSectionNavigation } from '@/utils/scrollToSection';
 
@@ -17,6 +18,8 @@ const HeaderComponent = () => {
   const [isAtTop, setIsAtTop] = useState(true);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const profileDropdownRef = useRef<HTMLDivElement>(null);
+  const [verificationSummary, setVerificationSummary] = useState<VerificationSummary | null>(null);
+  const [verificationLoading, setVerificationLoading] = useState(false);
 
   // Section IDs for scrollspy (always call hook, but use conditionally)
   const sectionIds = ['home', 'services', 'how-it-works', 'why-us', 'testimonials'];
@@ -64,8 +67,28 @@ const HeaderComponent = () => {
     if (isAuth) {
       const userData = getUser();
       setUser(userData);
+      
+      // Fetch verification summary if user is a provider
+      if (userData && isProvider(userData)) {
+        setVerificationLoading(true);
+        getVerificationSummary()
+          .then((summary) => {
+            setVerificationSummary(summary);
+          })
+          .catch((err) => {
+            // Silently fail - verification summary is optional
+            console.warn('Failed to fetch verification summary:', err);
+            setVerificationSummary(null);
+          })
+          .finally(() => {
+            setVerificationLoading(false);
+          });
+      } else {
+        setVerificationSummary(null);
+      }
     } else {
       setUser(null);
+      setVerificationSummary(null);
     }
     setProfileDropdownOpen(false);
   }, [pathname]);
@@ -237,12 +260,20 @@ const HeaderComponent = () => {
                     setProfileDropdownOpen(!profileDropdownOpen);
                     setMobileMenuOpen(false);
                   }}
-                  className="flex items-center justify-center w-10 h-10 rounded-full bg-[#69E6A6] cursor-pointer hover:bg-[#5dd195] transition-all duration-300 hover:scale-110 shadow-lg shadow-[#69E6A6]/30"
+                  className="flex items-center justify-center w-10 h-10 rounded-full bg-[#69E6A6] cursor-pointer hover:bg-[#5dd195] transition-all duration-300 hover:scale-110 shadow-lg shadow-[#69E6A6]/30 overflow-hidden"
                   title="Profile Menu"
                 >
-                  <span className="text-[#0A2640] font-bold text-lg">
-                    {user.name.charAt(0).toUpperCase()}
-                  </span>
+                  {user.profileImageUrl ? (
+                    <img
+                      src={user.profileImageUrl.startsWith('http') ? user.profileImageUrl : `${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:4000'}${user.profileImageUrl}`}
+                      alt={user.name}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <span className="text-[#0A2640] font-bold text-lg">
+                      {user.name.charAt(0).toUpperCase()}
+                    </span>
+                  )}
                 </div>
 
                 {/* Dropdown Menu */}
@@ -251,10 +282,18 @@ const HeaderComponent = () => {
                     {/* User Info Section */}
                     <div className="p-4 border-b border-white/10">
                       <div className="flex items-center space-x-3 mb-2">
-                        <div className="w-12 h-12 rounded-full bg-[#69E6A6] flex items-center justify-center flex-shrink-0">
-                          <span className="text-[#0A2640] font-bold text-xl">
-                            {user.name.charAt(0).toUpperCase()}
-                          </span>
+                        <div className="w-12 h-12 rounded-full bg-[#69E6A6] flex items-center justify-center flex-shrink-0 overflow-hidden">
+                          {user.profileImageUrl ? (
+                            <img
+                              src={user.profileImageUrl.startsWith('http') ? user.profileImageUrl : `${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:4000'}${user.profileImageUrl}`}
+                              alt={user.name}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <span className="text-[#0A2640] font-bold text-xl">
+                              {user.name.charAt(0).toUpperCase()}
+                            </span>
+                          )}
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="text-white font-semibold text-sm truncate">{user.name}</p>
@@ -262,14 +301,49 @@ const HeaderComponent = () => {
                         </div>
                       </div>
                       <div className="mt-2">
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#69E6A6]/20 text-[#69E6A6] capitalize">
-                          {user.role}
-                        </span>
+                        {isProvider(user) ? (
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#69E6A6]/20 text-[#69E6A6]">
+                            <span className="capitalize">Provider</span>
+                            {!verificationLoading && verificationSummary?.status === 'APPROVED' && verificationSummary?.role && (
+                              <>
+                                <span className="mx-1.5 text-[#69E6A6]/60">•</span>
+                                <span className="text-[#69E6A6]/80 font-normal">{verificationSummary.role}</span>
+                              </>
+                            )}
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#69E6A6]/20 text-[#69E6A6] capitalize">
+                            {user.role}
+                          </span>
+                        )}
                       </div>
                     </div>
 
                     {/* Menu Items */}
-                    <div className="p-2">
+                    <div className="p-2 space-y-1">
+                      <Link
+                        href="/dashboard/profile/edit"
+                        onClick={() => setProfileDropdownOpen(false)}
+                        className="flex items-center space-x-3 px-4 py-3 rounded-lg text-white/80 hover:text-white hover:bg-white/10 transition-all duration-200 group"
+                      >
+                        <svg
+                          className="w-5 h-5 text-white/60 group-hover:text-[#69E6A6] transition-colors"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                          />
+                        </svg>
+                        <span className="font-medium text-sm">Edit Profile</span>
+                      </Link>
+                      
+                      <div className="h-px bg-white/10 my-1"></div>
+                      
                       <div
                         onClick={handleLogout}
                         className="flex items-center space-x-3 px-4 py-3 rounded-lg text-white/80 hover:text-white hover:bg-red-500/20 transition-all duration-200 cursor-pointer group"
@@ -387,16 +461,44 @@ const HeaderComponent = () => {
                 <>
                   <div className="border-t border-white/10 my-2 pt-4">
                     <div className="flex items-center space-x-3 px-4 py-2 mb-2">
-                      <div className="w-10 h-10 rounded-full bg-[#69E6A6] flex items-center justify-center flex-shrink-0">
-                        <span className="text-[#0A2640] font-bold text-lg">
-                          {user.name.charAt(0).toUpperCase()}
-                        </span>
+                      <div className="w-10 h-10 rounded-full bg-[#69E6A6] flex items-center justify-center flex-shrink-0 overflow-hidden">
+                        {user.profileImageUrl ? (
+                          <img
+                            src={user.profileImageUrl.startsWith('http') ? user.profileImageUrl : `${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:4000'}${user.profileImageUrl}`}
+                            alt={user.name}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <span className="text-[#0A2640] font-bold text-lg">
+                            {user.name.charAt(0).toUpperCase()}
+                          </span>
+                        )}
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-white font-semibold text-sm truncate">{user.name}</p>
                         <p className="text-white/70 text-xs truncate">{user.email}</p>
                       </div>
                     </div>
+                    <Link
+                      href="/dashboard/profile/edit"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="flex items-center gap-3 py-3 px-4 text-base font-medium transition-all rounded-lg text-white/80 hover:text-white hover:bg-white/10"
+                    >
+                      <svg
+                        className="w-5 h-5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                        />
+                      </svg>
+                      Edit Profile
+                    </Link>
                     <div
                       onClick={() => {
                         handleLogout();

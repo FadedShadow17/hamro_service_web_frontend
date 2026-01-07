@@ -57,6 +57,33 @@ export async function getVerificationStatus(): Promise<VerificationData> {
   }
 }
 
+export interface VerificationSummary {
+  status: VerificationStatus;
+  role: string | null;
+}
+
+/**
+ * Get verification summary (status and role only)
+ * GET /api/provider/me/verification
+ */
+export async function getVerificationSummary(): Promise<VerificationSummary> {
+  try {
+    const response = await http<VerificationSummary>('/api/provider/verification/me/verification', {
+      method: 'GET',
+    });
+    return response;
+  } catch (error) {
+    if (error instanceof HttpError) {
+      // If 404 or not provider, return default values
+      if (error.status === 404 || error.status === 403) {
+        return { status: 'NOT_SUBMITTED', role: null };
+      }
+      throw error;
+    }
+    throw new HttpError(500, 'Failed to fetch verification summary');
+  }
+}
+
 export async function submitVerification(data: SubmitVerificationData): Promise<VerificationData> {
   try {
     const formData = new FormData();
