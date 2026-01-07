@@ -55,15 +55,12 @@ export function ServicesGrid({ services }: ServicesGridProps) {
       }, 1000);
     } catch (error) {
       if (error instanceof HttpError) {
-        // Handle expected "no provider available" scenario gracefully
-        if (error.code === 'NO_PROVIDER_AVAILABLE') {
-          toast.error('No providers available for this service in your location yet.');
-          // Don't log as error - this is an expected scenario
-          console.info('No providers available for booking:', {
-            serviceId: bookingData.serviceId,
-            area: bookingData.area,
-          });
-          return; // Early return - don't show Next.js error overlay
+        // Handle expected "no provider available" scenarios gracefully (don't show Next.js error overlay)
+        if (error.code === 'NO_PROVIDER_AVAILABLE' || error.code === 'NO_PROVIDER_ASSIGNED') {
+          toast.info(error.message || 'Booking created! A provider will be assigned soon.');
+          handleCloseModal();
+          // Don't throw - prevent Next.js error overlay
+          return;
         }
         // For other HttpErrors, show error toast
         toast.error(error.message || 'Failed to create booking. Please try again.');

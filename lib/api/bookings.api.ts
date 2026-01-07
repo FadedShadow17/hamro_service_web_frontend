@@ -9,12 +9,20 @@ export interface ServiceInfo {
   basePrice?: number;
 }
 
+export interface UserInfo {
+  id: string;
+  name: string;
+  email: string;
+  phone?: string; // Phone number (if available from user profile)
+}
+
 export interface Booking {
   id: string;
   userId: string;
-  providerId: string;
+  providerId?: string | null; // Made optional and nullable
   serviceId: string;
   service?: ServiceInfo; // Service details when available
+  user?: UserInfo; // User details when populated (for provider dashboard)
   date: string;
   timeSlot: string;
   area: string;
