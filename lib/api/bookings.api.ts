@@ -35,6 +35,9 @@ export interface Booking {
   timeSlot: string;
   area: string;
   status: BookingStatus;
+  paymentStatus?: 'UNPAID' | 'PAID'; // Payment status
+  paidAt?: string; // Date when payment was made (ISO string)
+  paymentMethod?: 'COD' | 'ONLINE'; // Payment method used
   createdAt: string;
   updatedAt: string;
 }

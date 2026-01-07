@@ -108,6 +108,8 @@ export default function UserDashboardPage() {
 
   const pendingBookings = bookings.filter((b) => b.status === 'PENDING' || b.status === 'CONFIRMED');
   const completedBookings = bookings.filter((b) => b.status === 'COMPLETED');
+  // Count CONFIRMED bookings that are UNPAID or don't have paymentStatus set
+  const payableBookings = bookings.filter((b) => b.status === 'CONFIRMED' && b.paymentStatus !== 'PAID');
 
   // Show loading state until mounted and user is verified
   if (!mounted || !user || !isUser(user)) {
@@ -203,7 +205,15 @@ export default function UserDashboardPage() {
                 </div>
               </Link>
 
-              <div className="group relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#FFA500]/30 via-[#FFA500]/15 to-[#FFA500]/5 p-6 border border-[#FFA500]/40 hover:border-[#FFA500]/60 transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl hover:shadow-[#FFA500]/20">
+              <button
+                onClick={() => {
+                  const servicesSection = document.getElementById('services');
+                  if (servicesSection) {
+                    servicesSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  }
+                }}
+                className="group relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#FFA500]/30 via-[#FFA500]/15 to-[#FFA500]/5 p-6 border border-[#FFA500]/40 hover:border-[#FFA500]/60 transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl hover:shadow-[#FFA500]/20 cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#FFA500]/50 focus:ring-offset-2 focus:ring-offset-[#0A2640]"
+              >
                 {/* Animated background pattern */}
                 <div className="absolute inset-0 opacity-10">
                   <div className="absolute top-0 right-0 w-32 h-32 bg-[#FFA500] rounded-full blur-3xl group-hover:scale-150 transition-transform duration-700"></div>
@@ -211,8 +221,8 @@ export default function UserDashboardPage() {
                 </div>
                 
                 <div className="relative z-10">
-                  <div className="mb-4">
-                    <div className="relative inline-block">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="relative">
                       <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#FFA500] to-[#ff9500] flex items-center justify-center group-hover:rotate-12 group-hover:scale-110 transition-all duration-300 shadow-lg shadow-[#FFA500]/30">
                         <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
@@ -220,6 +230,9 @@ export default function UserDashboardPage() {
                       </div>
                       <div className="absolute -top-1 -right-1 w-4 h-4 bg-[#FFA500] rounded-full animate-pulse"></div>
                     </div>
+                    <svg className="w-6 h-6 text-[#FFA500] group-hover:translate-x-2 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
                   </div>
                   <div className="space-y-1">
                     <h3 className="text-white font-bold text-3xl mb-1 group-hover:text-[#FFA500] transition-colors">{services.length}</h3>
@@ -229,9 +242,12 @@ export default function UserDashboardPage() {
                     </div>
                   </div>
                 </div>
-              </div>
+              </button>
 
-              <div className="group relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#9B59B6]/30 via-[#9B59B6]/15 to-[#9B59B6]/5 p-6 border border-[#9B59B6]/40 hover:border-[#9B59B6]/60 transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl hover:shadow-[#9B59B6]/20">
+              <Link
+                href="/dashboard/user/payments"
+                className="group relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#9B59B6]/30 via-[#9B59B6]/15 to-[#9B59B6]/5 p-6 border border-[#9B59B6]/40 hover:border-[#9B59B6]/60 transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl hover:shadow-[#9B59B6]/20"
+              >
                 {/* Animated background pattern */}
                 <div className="absolute inset-0 opacity-10">
                   <div className="absolute top-0 left-0 w-32 h-32 bg-[#9B59B6] rounded-full blur-3xl group-hover:scale-150 transition-transform duration-700"></div>
@@ -239,25 +255,28 @@ export default function UserDashboardPage() {
                 </div>
                 
                 <div className="relative z-10">
-                  <div className="mb-4">
-                    <div className="relative inline-block">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="relative">
                       <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#9B59B6] to-[#8e44ad] flex items-center justify-center group-hover:rotate-12 group-hover:scale-110 transition-all duration-300 shadow-lg shadow-[#9B59B6]/30">
                         <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
                         </svg>
                       </div>
                       <div className="absolute -top-1 -right-1 w-4 h-4 bg-[#9B59B6] rounded-full animate-pulse"></div>
                     </div>
+                    <svg className="w-6 h-6 text-[#9B59B6] group-hover:translate-x-2 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
                   </div>
                   <div className="space-y-1">
-                    <h3 className="text-white font-bold text-3xl mb-1 group-hover:text-[#9B59B6] transition-colors">Rs. {services.reduce((sum, s) => sum + (s.basePrice || 0), 0).toLocaleString()}</h3>
-                    <p className="text-white/80 text-sm font-medium">Total Value</p>
+                    <h3 className="text-white font-bold text-3xl mb-1 group-hover:text-[#9B59B6] transition-colors">{payableBookings.length}</h3>
+                    <p className="text-white/80 text-sm font-medium">Payments</p>
                     <div className="h-1 w-full bg-white/10 rounded-full overflow-hidden mt-2">
-                      <div className="h-full bg-[#9B59B6] rounded-full" style={{ width: `${Math.min((services.reduce((sum, s) => sum + (s.basePrice || 0), 0) / 50000) * 100, 100)}%` }}></div>
+                      <div className="h-full bg-[#9B59B6] rounded-full" style={{ width: `${Math.min((payableBookings.length / 10) * 100, 100)}%` }}></div>
                     </div>
                   </div>
                 </div>
-              </div>
+              </Link>
             </div>
 
             {/* Recent Bookings Section */}
@@ -364,7 +383,7 @@ export default function UserDashboardPage() {
             </div>
 
             {/* Services Section */}
-            <div className="mb-8">
+            <div id="services" className="mb-8 scroll-mt-20">
               <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
                 <div>
                   <h2 className="text-2xl md:text-3xl font-bold text-white mb-2">
