@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Service } from '@/lib/api/services.api';
+import { Service, getAvailableProviders, type AvailableProvider } from '@/lib/api/services.api';
 
 interface BookingModalProps {
   service: Service | null;
@@ -9,6 +9,7 @@ interface BookingModalProps {
   onClose: () => void;
   onConfirm: (bookingData: {
     serviceId: string;
+    providerId: string;
     date: string;
     time: string;
     area: string;
@@ -19,7 +20,10 @@ export function BookingModal({ service, isOpen, onClose, onConfirm }: BookingMod
   const [date, setDate] = useState('');
   const [time, setTime] = useState('');
   const [area, setArea] = useState('');
-  const [errors, setErrors] = useState<{ date?: string; time?: string; area?: string }>({});
+  const [selectedProviderId, setSelectedProviderId] = useState<string>('');
+  const [availableProviders, setAvailableProviders] = useState<AvailableProvider[]>([]);
+  const [loadingProviders, setLoadingProviders] = useState(false);
+  const [errors, setErrors] = useState<{ date?: string; time?: string; area?: string; provider?: string }>({});
 
   // Get tomorrow's date as minimum date
   const getMinDate = () => {
@@ -34,13 +38,46 @@ export function BookingModal({ service, isOpen, onClose, onConfirm }: BookingMod
       setDate('');
       setTime('');
       setArea('');
+      setSelectedProviderId('');
+      setAvailableProviders([]);
       setErrors({});
     }
   }, [isOpen]);
 
+  // Fetch available providers when date and area are set
+  useEffect(() => {
+    const fetchProviders = async () => {
+      if (!service || !date || !area.trim()) {
+        setAvailableProviders([]);
+        setSelectedProviderId('');
+        return;
+      }
+
+      try {
+        setLoadingProviders(true);
+        const providers = await getAvailableProviders(service.id, date, area.trim());
+        setAvailableProviders(providers);
+        // Auto-select first provider if available
+        if (providers.length > 0) {
+          setSelectedProviderId(providers[0].providerId);
+        } else {
+          setSelectedProviderId('');
+        }
+      } catch (error) {
+        console.error('Failed to fetch providers:', error);
+        setAvailableProviders([]);
+        setSelectedProviderId('');
+      } finally {
+        setLoadingProviders(false);
+      }
+    };
+
+    fetchProviders();
+  }, [service, date, area]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const newErrors: { date?: string; time?: string; area?: string } = {};
+    const newErrors: { date?: string; time?: string; area?: string; provider?: string } = {};
 
     if (!date) {
       newErrors.date = 'Please select a date';
@@ -51,6 +88,9 @@ export function BookingModal({ service, isOpen, onClose, onConfirm }: BookingMod
     if (!area.trim()) {
       newErrors.area = 'Please enter your location';
     }
+    if (!selectedProviderId) {
+      newErrors.provider = 'Please wait for available providers to load, or select a provider';
+    }
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
@@ -59,6 +99,7 @@ export function BookingModal({ service, isOpen, onClose, onConfirm }: BookingMod
 
     onConfirm({
       serviceId: service!.id,
+      providerId: selectedProviderId,
       date,
       time,
       area: area.trim(),
@@ -146,45 +187,92 @@ export function BookingModal({ service, isOpen, onClose, onConfirm }: BookingMod
           {/* Location */}
           <div>
             <label className="block text-sm font-medium text-white/80 mb-2">
-              Location
+              Location (Area in Kathmandu)
             </label>
-            <div className="flex gap-2">
-              <div className="relative flex-1">
-                <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                  <svg className="w-5 h-5 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                  </svg>
-                </div>
-                <input
-                  type="text"
-                  value={area}
-                  onChange={(e) => {
-                    setArea(e.target.value);
-                    if (errors.area) setErrors({ ...errors, area: undefined });
-                  }}
-                  placeholder="Enter your location"
-                  className={`w-full rounded-lg border bg-[#0A2640] py-3 pl-10 pr-4 text-white placeholder-white/50 focus:border-[#69E6A6] focus:outline-none focus:ring-2 focus:ring-[#69E6A6]/20 transition-all ${
-                    errors.area ? 'border-red-500' : 'border-white/20'
-                  }`}
-                />
-              </div>
-              <button
-                type="button"
-                onClick={() => {
-                  // Placeholder for location functionality
-                  console.log('Location button clicked');
-                }}
-                className="px-4 py-3 rounded-lg bg-[#69E6A6]/20 hover:bg-[#69E6A6]/30 border border-[#69E6A6]/50 text-[#69E6A6] transition-all hover:scale-105"
-                title="Use current location"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+            <div className="relative">
+              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                <svg className="w-5 h-5 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
-              </button>
+              </div>
+              <select
+                value={area}
+                onChange={(e) => {
+                  setArea(e.target.value);
+                  if (errors.area) setErrors({ ...errors, area: undefined });
+                }}
+                className={`w-full rounded-lg border bg-[#0A2640] py-3 pl-10 pr-10 text-white appearance-none cursor-pointer focus:border-[#69E6A6] focus:outline-none focus:ring-2 focus:ring-[#69E6A6]/20 transition-all ${
+                  errors.area ? 'border-red-500' : 'border-white/20'
+                }`}
+              >
+                <option value="" disabled className="bg-[#1C3D5B] text-white/70">
+                  Select area
+                </option>
+                {['Baneshwor', 'Koteshwor', 'Kalanki', 'Balaju', 'Boudha', 'Kalimati', 'New Road', 'Thamel', 'Chabahil', 'Maharajgunj'].map((areaOption) => (
+                  <option key={areaOption} value={areaOption} className="bg-[#1C3D5B] text-white">
+                    {areaOption}
+                  </option>
+                ))}
+              </select>
+              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                <svg className="w-5 h-5 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
             </div>
             {errors.area && <p className="mt-1 text-sm text-red-400">{errors.area}</p>}
           </div>
+
+          {/* Provider Selection */}
+          {date && area.trim() && (
+            <div>
+              <label className="block text-sm font-medium text-white/80 mb-2">
+                Select Provider
+              </label>
+              {loadingProviders ? (
+                <div className="rounded-lg border border-white/20 bg-[#0A2640] py-3 px-4 text-white/70 text-sm">
+                  Loading available providers...
+                </div>
+              ) : availableProviders.length > 0 ? (
+                <div className="space-y-2">
+                  {availableProviders.map((provider) => (
+                    <label
+                      key={provider.providerId}
+                      className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-all ${
+                        selectedProviderId === provider.providerId
+                          ? 'border-[#69E6A6] bg-[#69E6A6]/10'
+                          : 'border-white/20 bg-[#0A2640] hover:border-white/40'
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="provider"
+                        value={provider.providerId}
+                        checked={selectedProviderId === provider.providerId}
+                        onChange={(e) => {
+                          setSelectedProviderId(e.target.value);
+                          if (errors.provider) setErrors({ ...errors, provider: undefined });
+                        }}
+                        className="w-4 h-4 text-[#69E6A6] focus:ring-[#69E6A6]"
+                      />
+                      <div className="flex-1">
+                        <div className="text-white font-medium">{provider.providerName || 'Provider'}</div>
+                        <div className="text-white/60 text-xs mt-1">
+                          {provider.area} • Rs. {provider.price?.toLocaleString() || 'N/A'}
+                        </div>
+                      </div>
+                    </label>
+                  ))}
+                </div>
+              ) : (
+                <div className="rounded-lg border border-yellow-500/50 bg-yellow-500/10 py-3 px-4 text-yellow-400 text-sm">
+                  No providers available for this date and location. Please try a different date or location.
+                </div>
+              )}
+              {errors.provider && <p className="mt-1 text-sm text-red-400">{errors.provider}</p>}
+            </div>
+          )}
 
           {/* Actions */}
           <div className="flex gap-3 pt-4">

@@ -24,17 +24,29 @@ export function ServicesGrid({ services }: ServicesGridProps) {
     setSelectedService(null);
   };
 
-  const handleConfirmBooking = (bookingData: {
+  const handleConfirmBooking = async (bookingData: {
     serviceId: string;
+    providerId: string;
     date: string;
     time: string;
     area: string;
   }) => {
-    // TODO: Implement booking API call
-    console.log('Booking data:', bookingData);
-    // For now, just close the modal
-    handleCloseModal();
-    // You can add a success toast/notification here
+    try {
+      const { createBooking } = await import('@/lib/api/bookings.api');
+      await createBooking({
+        serviceId: bookingData.serviceId,
+        providerId: bookingData.providerId,
+        date: bookingData.date,
+        timeSlot: bookingData.time,
+        area: bookingData.area,
+      });
+      handleCloseModal();
+      // Refresh the page or show success message
+      window.location.reload();
+    } catch (error) {
+      console.error('Failed to create booking:', error);
+      alert(error instanceof Error ? error.message : 'Failed to create booking. Please try again.');
+    }
   };
 
   if (services.length === 0) {
