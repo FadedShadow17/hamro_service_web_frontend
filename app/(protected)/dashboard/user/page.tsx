@@ -139,7 +139,7 @@ export default function UserDashboardPage() {
             {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
               <Link
-                href="/bookings"
+                href="/dashboard/user/bookings"
                 className="group rounded-2xl bg-gradient-to-br from-[#69E6A6]/20 to-[#69E6A6]/5 p-6 border border-[#69E6A6]/30 hover:border-[#69E6A6]/50 transition-all duration-300 hover:scale-105"
               >
                 <div className="flex items-center justify-between mb-2">
@@ -190,7 +190,7 @@ export default function UserDashboardPage() {
             {/* Quick Actions */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
               <Link
-                href="/bookings"
+                href="/dashboard/user/bookings"
                 className="group rounded-2xl bg-[#1C3D5B] p-6 border border-white/10 hover:border-[#69E6A6]/50 transition-all duration-300 hover:scale-105"
               >
                 <div className="flex items-center space-x-4">

@@ -219,7 +219,7 @@ const HeaderComponent = () => {
             {/* Context Action - When Authenticated */}
             {authenticated && user && (
               <Link
-                href={isUser(user) ? '/bookings' : '/dashboard/provider/bookings'}
+                href={isUser(user) ? '/dashboard/user/bookings' : '/dashboard/provider/bookings'}
                 className="hidden md:flex items-center space-x-2 px-4 py-2 rounded-lg bg-white/10 hover:bg-[#69E6A6]/20 border border-white/20 hover:border-[#69E6A6]/50 text-white hover:text-[#69E6A6] transition-all duration-200"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -370,7 +370,7 @@ const HeaderComponent = () => {
                 /* Show context action in mobile menu when authenticated */
                 user && (
                   <Link
-                    href={isUser(user) ? '/bookings' : '/dashboard/provider/bookings'}
+                    href={isUser(user) ? '/dashboard/user/bookings' : '/dashboard/provider/bookings'}
                     onClick={() => setMobileMenuOpen(false)}
                     className="flex items-center gap-3 py-3 px-4 text-base font-medium transition-all rounded-lg text-white/80 hover:text-[#69E6A6] hover:bg-[#69E6A6]/10"
                   >

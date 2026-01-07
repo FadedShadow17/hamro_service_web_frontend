@@ -2,72 +2,44 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { getUser, isProvider } from '@/lib/auth/auth.storage';
+import { getUser, isUser } from '@/lib/auth/auth.storage';
 import { RouteGuard } from '@/components/auth/RouteGuard';
-import { getProviderBookings, acceptBooking, declineBooking, completeBooking, type Booking, type BookingStatus } from '@/lib/api/bookings.api';
+import { getMyBookings, cancelBooking, type Booking, type BookingStatus } from '@/lib/api/bookings.api';
 import { HttpError } from '@/lib/api/http';
 
-export default function ProviderBookingsPage() {
+export default function UserBookingsPage() {
   const router = useRouter();
   const [user, setUser] = useState<ReturnType<typeof getUser>>(null);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>('');
-  const [isProviderProfileMissing, setIsProviderProfileMissing] = useState(false);
   const [filter, setFilter] = useState<BookingStatus | 'ALL'>('ALL');
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
     const currentUser = getUser();
-    if (!currentUser || !isProvider(currentUser)) {
+    if (!currentUser || !isUser(currentUser)) {
       router.replace('/dashboard');
       return;
     }
     
     setUser(currentUser);
-    
-    // Wrap in async function to properly handle errors and prevent Next.js error overlay
-    const loadData = async () => {
-      try {
-        await loadBookings();
-      } catch (err) {
-        // Error is already handled in loadBookings, but we catch here
-        // to prevent unhandled promise rejection that triggers Next.js error overlay
-        // The error state is set in loadBookings, so we don't need to do anything here
-        if (err instanceof HttpError && err.status === 404 && err.message.includes('Provider profile not found')) {
-          // This is an expected error, already handled in loadBookings
-          return;
-        }
-      }
-    };
-    
-    loadData();
+    loadBookings();
   }, [router, filter]);
 
   const loadBookings = async () => {
     try {
       setLoading(true);
       setError('');
-      setIsProviderProfileMissing(false);
       const status = filter === 'ALL' ? undefined : filter;
-      const data = await getProviderBookings(status);
+      const data = await getMyBookings(status);
       setBookings(data);
     } catch (err) {
-      // Prevent error from propagating to Next.js error overlay
       if (err instanceof HttpError) {
-        if (err.status === 404 && err.message.includes('Provider profile not found')) {
-          setError('You need to create a provider profile first. Please complete your provider setup to view bookings.');
-          setIsProviderProfileMissing(true);
-          // Don't log expected errors to prevent Next.js error overlay
-          return;
-        } else {
-          setError(err.message || 'Failed to load bookings. Please try again.');
-          setIsProviderProfileMissing(false);
-        }
+        setError(err.message || 'Failed to load bookings. Please try again.');
       } else {
         setError('Failed to load bookings. Please try again.');
-        setIsProviderProfileMissing(false);
       }
       console.error('Error loading bookings:', err);
     } finally {
@@ -75,33 +47,10 @@ export default function ProviderBookingsPage() {
     }
   };
 
-  const handleAccept = async (bookingId: string) => {
+  const handleCancel = async (bookingId: string) => {
+    if (!confirm('Are you sure you want to cancel this booking?')) return;
     try {
-      await acceptBooking(bookingId);
-      loadBookings();
-    } catch (err) {
-      if (err instanceof HttpError) {
-        alert(err.message);
-      }
-    }
-  };
-
-  const handleDecline = async (bookingId: string) => {
-    if (!confirm('Are you sure you want to decline this booking?')) return;
-    try {
-      await declineBooking(bookingId);
-      loadBookings();
-    } catch (err) {
-      if (err instanceof HttpError) {
-        alert(err.message);
-      }
-    }
-  };
-
-  const handleComplete = async (bookingId: string) => {
-    if (!confirm('Mark this booking as completed?')) return;
-    try {
-      await completeBooking(bookingId);
+      await cancelBooking(bookingId);
       loadBookings();
     } catch (err) {
       if (err instanceof HttpError) {
@@ -127,7 +76,7 @@ export default function ProviderBookingsPage() {
     }
   };
 
-  if (!mounted || !user || !isProvider(user)) {
+  if (!mounted || !user || !isUser(user)) {
     return (
       <RouteGuard requireAuth redirectTo="/login">
         <div className="flex min-h-screen items-center justify-center bg-[#0A2640]">
@@ -146,9 +95,9 @@ export default function ProviderBookingsPage() {
           <div className="max-w-6xl mx-auto">
             <div className="mb-8">
               <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">
-                My Jobs
+                My Bookings
               </h1>
-              <p className="text-white/70">Manage your booking requests</p>
+              <p className="text-white/70">View and manage your service bookings</p>
             </div>
 
             {/* Filter Tabs */}
@@ -180,30 +129,13 @@ export default function ProviderBookingsPage() {
               </div>
             ) : error ? (
               <div className="rounded-2xl bg-red-500/20 border border-red-500/50 p-6 text-center">
-                <svg className="w-16 h-16 text-red-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                </svg>
                 <p className="text-red-400 mb-4 text-lg font-semibold">{error}</p>
-                {isProviderProfileMissing ? (
-                  <div className="space-y-3">
-                    <p className="text-red-300 text-sm mb-4">
-                      To start receiving bookings, you need to complete your provider profile setup.
-                    </p>
-                    <button
-                      onClick={() => router.push('/dashboard/provider')}
-                      className="px-6 py-2 bg-[#69E6A6] hover:bg-[#5dd195] text-[#0A2640] rounded-lg font-semibold transition-colors"
-                    >
-                      Go to Provider Dashboard
-                    </button>
-                  </div>
-                ) : (
-                  <button
-                    onClick={loadBookings}
-                    className="px-6 py-2 bg-red-500/20 hover:bg-red-500/30 border border-red-500/50 rounded-lg text-red-400 transition-colors"
-                  >
-                    Try Again
-                  </button>
-                )}
+                <button
+                  onClick={loadBookings}
+                  className="px-6 py-2 bg-red-500/20 hover:bg-red-500/30 border border-red-500/50 rounded-lg text-red-400 transition-colors"
+                >
+                  Try Again
+                </button>
               </div>
             ) : filteredBookings.length === 0 ? (
               <div className="rounded-2xl bg-[#1C3D5B] border border-white/10 p-12 text-center">
@@ -255,28 +187,12 @@ export default function ProviderBookingsPage() {
                       </div>
 
                       <div className="flex flex-col sm:flex-row gap-2">
-                        {booking.status === 'PENDING' && (
-                          <>
-                            <button
-                              onClick={() => handleAccept(booking.id)}
-                              className="px-6 py-2 bg-[#69E6A6] hover:bg-[#5dd195] text-[#0A2640] rounded-lg font-semibold transition-colors"
-                            >
-                              Accept
-                            </button>
-                            <button
-                              onClick={() => handleDecline(booking.id)}
-                              className="px-6 py-2 bg-red-500/20 hover:bg-red-500/30 border border-red-500/50 text-red-400 rounded-lg font-semibold transition-colors"
-                            >
-                              Decline
-                            </button>
-                          </>
-                        )}
-                        {booking.status === 'CONFIRMED' && (
+                        {(booking.status === 'PENDING' || booking.status === 'CONFIRMED') && (
                           <button
-                            onClick={() => handleComplete(booking.id)}
-                            className="px-6 py-2 bg-[#4A9EFF] hover:bg-[#3a8ee0] text-white rounded-lg font-semibold transition-colors"
+                            onClick={() => handleCancel(booking.id)}
+                            className="px-6 py-2 bg-red-500/20 hover:bg-red-500/30 border border-red-500/50 text-red-400 rounded-lg font-semibold transition-colors"
                           >
-                            Mark Complete
+                            Cancel Booking
                           </button>
                         )}
                         {(booking.status === 'COMPLETED' || booking.status === 'DECLINED' || booking.status === 'CANCELLED') && (
