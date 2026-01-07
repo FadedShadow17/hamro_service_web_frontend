@@ -16,6 +16,13 @@ export interface UserInfo {
   phone?: string; // Phone number (if available from user profile)
 }
 
+export interface ProviderInfo {
+  id: string;
+  fullName?: string; // From ProviderProfile verification
+  serviceRole?: string; // From ProviderProfile
+  phone?: string; // From ProviderProfile
+}
+
 export interface Booking {
   id: string;
   userId: string;
@@ -23,6 +30,7 @@ export interface Booking {
   serviceId: string;
   service?: ServiceInfo; // Service details when available
   user?: UserInfo; // User details when populated (for provider dashboard)
+  provider?: ProviderInfo; // Provider details when populated (for user dashboard)
   date: string;
   timeSlot: string;
   area: string;
@@ -149,6 +157,31 @@ export async function cancelBooking(bookingId: string): Promise<Booking> {
       throw error;
     }
     throw new HttpError(500, 'Failed to cancel booking');
+  }
+}
+
+/**
+ * Update booking status (unified endpoint for provider)
+ * PATCH /api/provider/bookings/:id/status
+ */
+export async function updateProviderBookingStatus(
+  bookingId: string,
+  status: 'CONFIRMED' | 'DECLINED' | 'COMPLETED'
+): Promise<Booking> {
+  try {
+    const response = await http<{ message: string; booking: Booking }>(
+      `/api/provider/bookings/${bookingId}/status`,
+      {
+        method: 'PATCH',
+        body: { status },
+      }
+    );
+    return response.booking;
+  } catch (error) {
+    if (error instanceof HttpError) {
+      throw error;
+    }
+    throw new HttpError(500, 'Failed to update booking status');
   }
 }
 

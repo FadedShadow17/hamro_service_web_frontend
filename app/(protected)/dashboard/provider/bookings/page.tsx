@@ -18,6 +18,7 @@ export default function ProviderBookingsPage() {
   const [isProviderProfileMissing, setIsProviderProfileMissing] = useState(false);
   const [filter, setFilter] = useState<BookingStatus | 'ALL'>('ALL');
   const [mounted, setMounted] = useState(false);
+  const [actionLoading, setActionLoading] = useState<Record<string, string>>({}); // Track which action is loading for which booking
 
   useEffect(() => {
     setMounted(true);
@@ -45,6 +46,13 @@ export default function ProviderBookingsPage() {
     };
     
     loadData();
+
+    // Refetch bookings when page gains focus (to sync with any external changes)
+    const handleFocus = () => {
+      loadBookings();
+    };
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
   }, [router, filter]);
 
   const loadBookings = async () => {
@@ -79,56 +87,103 @@ export default function ProviderBookingsPage() {
   };
 
   const handleAccept = async (bookingId: string) => {
+    setActionLoading({ ...actionLoading, [bookingId]: 'accept' });
     try {
       await acceptBooking(bookingId);
-      toast.success('Booking accepted successfully!');
-      loadBookings();
+      toast.success('Booking accepted successfully');
+      await loadBookings(); // Refetch to update UI immediately
     } catch (err) {
       if (err instanceof HttpError) {
+        // Handle verification requirement
         if (err.status === 403 && err.message.includes('verification')) {
           toast.error(`${err.message} Please complete your verification to accept bookings.`);
           setTimeout(() => router.push('/dashboard/provider/verification'), 2000);
-        } else {
-          toast.error(err.message || 'Failed to accept booking');
+        } 
+        // Handle ownership error (should be fixed by backend, but show friendly message)
+        else if (err.status === 403 && (err.code === 'UNAUTHORIZED_PROVIDER' || err.message.includes('does not belong'))) {
+          toast.error('This booking is not assigned to you. Please refresh the page.');
+          // Auto-refresh after showing error
+          setTimeout(() => loadBookings(), 1000);
+        }
+        // Handle other errors
+        else {
+          toast.error(err.message || 'Failed to accept booking. Please try again.');
         }
       } else {
-        toast.error('Failed to accept booking');
+        console.error('Unexpected error accepting booking:', err);
+        toast.error('An unexpected error occurred. Please try again.');
       }
+    } finally {
+      setActionLoading((prev) => {
+        const next = { ...prev };
+        delete next[bookingId];
+        return next;
+      });
     }
   };
 
   const handleDecline = async (bookingId: string) => {
     if (!confirm('Are you sure you want to decline this booking?')) return;
+    setActionLoading({ ...actionLoading, [bookingId]: 'decline' });
     try {
       await declineBooking(bookingId);
-      toast.success('Booking declined');
-      loadBookings();
+      toast.success('Booking declined successfully');
+      await loadBookings(); // Refetch to update UI immediately
     } catch (err) {
       if (err instanceof HttpError) {
-        toast.error(err.message || 'Failed to decline booking');
+        // Handle ownership error
+        if (err.status === 403 && (err.code === 'UNAUTHORIZED_PROVIDER' || err.message.includes('does not belong'))) {
+          toast.error('This booking is not assigned to you. Please refresh the page.');
+          setTimeout(() => loadBookings(), 1000);
+        } else {
+          toast.error(err.message || 'Failed to decline booking. Please try again.');
+        }
       } else {
-        toast.error('Failed to decline booking');
+        console.error('Unexpected error declining booking:', err);
+        toast.error('An unexpected error occurred. Please try again.');
       }
+    } finally {
+      setActionLoading((prev) => {
+        const next = { ...prev };
+        delete next[bookingId];
+        return next;
+      });
     }
   };
 
   const handleComplete = async (bookingId: string) => {
     if (!confirm('Mark this booking as completed?')) return;
+    setActionLoading({ ...actionLoading, [bookingId]: 'complete' });
     try {
       await completeBooking(bookingId);
-      toast.success('Booking marked as completed!');
-      loadBookings();
+      toast.success('Service marked as completed');
+      await loadBookings(); // Refetch to update UI immediately
     } catch (err) {
       if (err instanceof HttpError) {
+        // Handle verification requirement
         if (err.status === 403 && err.message.includes('verification')) {
           toast.error(`${err.message} Please complete your verification to mark bookings as complete.`);
           setTimeout(() => router.push('/dashboard/provider/verification'), 2000);
-        } else {
-          toast.error(err.message || 'Failed to complete booking');
+        }
+        // Handle ownership error
+        else if (err.status === 403 && (err.code === 'UNAUTHORIZED_PROVIDER' || err.message.includes('does not belong'))) {
+          toast.error('This booking is not assigned to you. Please refresh the page.');
+          setTimeout(() => loadBookings(), 1000);
+        }
+        // Handle other errors
+        else {
+          toast.error(err.message || 'Failed to complete booking. Please try again.');
         }
       } else {
-        toast.error('Failed to complete booking');
+        console.error('Unexpected error completing booking:', err);
+        toast.error('An unexpected error occurred. Please try again.');
       }
+    } finally {
+      setActionLoading((prev) => {
+        const next = { ...prev };
+        delete next[bookingId];
+        return next;
+      });
     }
   };
 
@@ -319,24 +374,27 @@ export default function ProviderBookingsPage() {
                           <>
                             <button
                               onClick={() => handleAccept(booking.id)}
-                              className="px-6 py-2 bg-[#69E6A6] hover:bg-[#5dd195] text-[#0A2640] rounded-lg font-semibold transition-colors"
+                              disabled={actionLoading[booking.id] === 'accept'}
+                              className="px-6 py-2 bg-[#69E6A6] hover:bg-[#5dd195] text-[#0A2640] rounded-lg font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                              Accept
+                              {actionLoading[booking.id] === 'accept' ? 'Accepting...' : 'Accept'}
                             </button>
                             <button
                               onClick={() => handleDecline(booking.id)}
-                              className="px-6 py-2 bg-red-500/20 hover:bg-red-500/30 border border-red-500/50 text-red-400 rounded-lg font-semibold transition-colors"
+                              disabled={actionLoading[booking.id] === 'decline'}
+                              className="px-6 py-2 bg-red-500/20 hover:bg-red-500/30 border border-red-500/50 text-red-400 rounded-lg font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                              Decline
+                              {actionLoading[booking.id] === 'decline' ? 'Declining...' : 'Decline'}
                             </button>
                           </>
                         )}
                         {booking.status === 'CONFIRMED' && (
                           <button
                             onClick={() => handleComplete(booking.id)}
-                            className="px-6 py-2 bg-[#4A9EFF] hover:bg-[#3a8ee0] text-white rounded-lg font-semibold transition-colors"
+                            disabled={actionLoading[booking.id] === 'complete'}
+                            className="px-6 py-2 bg-[#4A9EFF] hover:bg-[#3a8ee0] text-white rounded-lg font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                           >
-                            Mark Complete
+                            {actionLoading[booking.id] === 'complete' ? 'Completing...' : 'Mark Complete'}
                           </button>
                         )}
                         {(booking.status === 'COMPLETED' || booking.status === 'DECLINED' || booking.status === 'CANCELLED') && (

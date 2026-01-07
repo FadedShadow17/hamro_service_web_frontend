@@ -28,6 +28,13 @@ export default function UserBookingsPage() {
     
     setUser(currentUser);
     loadBookings();
+
+    // Refetch bookings when page gains focus (to sync with provider actions)
+    const handleFocus = () => {
+      loadBookings();
+    };
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
   }, [router, filter]);
 
   const loadBookings = async () => {
@@ -54,12 +61,19 @@ export default function UserBookingsPage() {
     try {
       await cancelBooking(bookingId);
       toast.success('Booking cancelled successfully');
-      loadBookings();
+      await loadBookings(); // Refetch to update UI immediately
     } catch (err) {
       if (err instanceof HttpError) {
-        toast.error(err.message || 'Failed to cancel booking');
+        // Handle ownership error
+        if (err.status === 403 && (err.code === 'UNAUTHORIZED_USER' || err.message.includes('does not belong'))) {
+          toast.error('This booking does not belong to you. Please refresh the page.');
+          setTimeout(() => loadBookings(), 1000);
+        } else {
+          toast.error(err.message || 'Failed to cancel booking. Please try again.');
+        }
       } else {
-        toast.error('Failed to cancel booking');
+        console.error('Unexpected error cancelling booking:', err);
+        toast.error('An unexpected error occurred. Please try again.');
       }
     }
   };
@@ -170,6 +184,69 @@ export default function UserBookingsPage() {
                           </span>
                         </div>
                         <div className="space-y-2">
+                          {/* Status Message & Timeline */}
+                          <div className="mb-3 space-y-2">
+                            {booking.status === 'PENDING' && (
+                              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-yellow-500/10 border border-yellow-500/30">
+                                <svg className="w-4 h-4 text-yellow-400 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <span className="text-yellow-400 text-sm font-medium">Waiting for provider response</span>
+                              </div>
+                            )}
+                            {booking.status === 'CONFIRMED' && (
+                              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-blue-500/10 border border-blue-500/30">
+                                <svg className="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <span className="text-blue-400 text-sm font-medium">Accepted by provider</span>
+                              </div>
+                            )}
+                            {booking.status === 'DECLINED' && (
+                              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-red-500/10 border border-red-500/30">
+                                <svg className="w-4 h-4 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <span className="text-red-400 text-sm font-medium">Declined by provider</span>
+                              </div>
+                            )}
+                            {booking.status === 'COMPLETED' && (
+                              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#69E6A6]/10 border border-[#69E6A6]/30">
+                                <svg className="w-4 h-4 text-[#69E6A6]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <span className="text-[#69E6A6] text-sm font-medium">Service completed</span>
+                              </div>
+                            )}
+                            {booking.status === 'CANCELLED' && (
+                              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gray-500/10 border border-gray-500/30">
+                                <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                                <span className="text-gray-400 text-sm font-medium">Cancelled</span>
+                              </div>
+                            )}
+                            
+                            {/* Status Timeline */}
+                            <div className="flex items-center gap-2 text-xs text-white/50 mt-2">
+                              <span className={booking.status !== 'PENDING' ? 'text-[#69E6A6]' : ''}>Requested</span>
+                              {booking.status !== 'PENDING' && (
+                                <>
+                                  <span>→</span>
+                                  <span className={booking.status === 'CONFIRMED' || booking.status === 'COMPLETED' ? 'text-[#69E6A6]' : booking.status === 'DECLINED' ? 'text-red-400' : ''}>
+                                    {booking.status === 'CONFIRMED' || booking.status === 'COMPLETED' ? 'Accepted' : booking.status === 'DECLINED' ? 'Declined' : ''}
+                                  </span>
+                                </>
+                              )}
+                              {booking.status === 'COMPLETED' && (
+                                <>
+                                  <span>→</span>
+                                  <span className="text-[#69E6A6]">Completed</span>
+                                </>
+                              )}
+                            </div>
+                          </div>
+
                           <div className="flex items-center gap-2 text-white">
                             <svg className="w-5 h-5 text-[#69E6A6]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -185,9 +262,50 @@ export default function UserBookingsPage() {
                             </svg>
                             <span>{booking.area}, Kathmandu</span>
                           </div>
-                          <div className="text-white/50 text-sm">
-                            Service ID: {booking.serviceId}
-                          </div>
+                          {booking.service ? (
+                            <div className="flex items-center gap-2 text-white/80">
+                              <svg className="w-5 h-5 text-[#69E6A6]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                              </svg>
+                              <span className="font-semibold">{booking.service.name}</span>
+                              {booking.service.basePrice && (
+                                <span className="text-[#69E6A6]">• Rs. {booking.service.basePrice.toLocaleString()}</span>
+                              )}
+                            </div>
+                          ) : (
+                            <div className="text-white/50 text-sm">
+                              Service ID: {booking.serviceId}
+                            </div>
+                          )}
+                          {booking.provider && (
+                            <div className="flex items-center gap-2 text-white/80 mt-2 pt-2 border-t border-white/10">
+                              <svg className="w-5 h-5 text-[#69E6A6]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                              </svg>
+                              <span className="font-medium">
+                                Provider: {booking.provider.fullName || booking.provider.serviceRole || 'Provider'}
+                              </span>
+                              {booking.provider.serviceRole && (
+                                <span className="text-white/50 text-sm">({booking.provider.serviceRole})</span>
+                              )}
+                              {booking.provider.phone && (
+                                <a
+                                  href={`tel:${booking.provider.phone}`}
+                                  className="text-[#69E6A6] hover:text-[#5dd195] transition-colors flex items-center gap-1 ml-2"
+                                >
+                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                                  </svg>
+                                  {booking.provider.phone}
+                                </a>
+                              )}
+                            </div>
+                          )}
+                          {!booking.provider && booking.providerId && (
+                            <div className="text-white/50 text-sm mt-2 pt-2 border-t border-white/10">
+                              Provider ID: {booking.providerId}
+                            </div>
+                          )}
                         </div>
                       </div>
 
