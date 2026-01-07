@@ -111,7 +111,7 @@ export default function ProviderDashboardPage() {
   return (
     <RouteGuard requireAuth redirectTo="/login">
       <div className="min-h-screen bg-[#0A2640]">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-20">
           <div className="max-w-7xl mx-auto">
             {/* Header Section */}
             <div className="mb-8">
@@ -131,131 +131,171 @@ export default function ProviderDashboardPage() {
             ) : (
               <>
                 {/* KPI Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                   <Link
                     href="/dashboard/provider/bookings?status=PENDING"
-                    className="group rounded-2xl bg-gradient-to-br from-yellow-500/20 to-yellow-500/5 p-6 border border-yellow-500/30 hover:border-yellow-500/50 transition-all duration-300 hover:scale-105"
+                    className="group relative overflow-hidden rounded-3xl bg-gradient-to-br from-yellow-500/30 via-yellow-500/15 to-yellow-500/5 p-6 border border-yellow-500/40 hover:border-yellow-500/60 transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl hover:shadow-yellow-500/20"
                   >
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="w-12 h-12 rounded-xl bg-yellow-500 flex items-center justify-center group-hover:scale-110 transition-transform">
-                        <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    {/* Animated background pattern */}
+                    <div className="absolute inset-0 opacity-10">
+                      <div className="absolute top-0 right-0 w-32 h-32 bg-yellow-500 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-700"></div>
+                      <div className="absolute bottom-0 left-0 w-24 h-24 bg-yellow-500 rounded-full blur-2xl group-hover:scale-125 transition-transform duration-500"></div>
+                    </div>
+                    
+                    <div className="relative z-10">
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="relative">
+                          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-yellow-500 to-[#f59e0b] flex items-center justify-center group-hover:rotate-12 group-hover:scale-110 transition-all duration-300 shadow-lg shadow-yellow-500/30">
+                            <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                          </div>
+                          <div className="absolute -top-1 -right-1 w-4 h-4 bg-yellow-500 rounded-full animate-pulse"></div>
+                        </div>
+                        <svg className="w-6 h-6 text-yellow-400 group-hover:translate-x-2 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                         </svg>
                       </div>
-                      <svg className="w-5 h-5 text-yellow-400 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                      </svg>
+                      <div className="space-y-1">
+                        <h3 className="text-white font-bold text-3xl mb-1 group-hover:text-yellow-400 transition-colors">{pendingBookings.length}</h3>
+                        <p className="text-white/80 text-sm font-medium">Pending Requests</p>
+                        <div className="h-1 w-full bg-white/10 rounded-full overflow-hidden mt-2">
+                          <div className="h-full bg-yellow-500 rounded-full" style={{ width: `${Math.min((pendingBookings.length / 10) * 100, 100)}%` }}></div>
+                        </div>
+                      </div>
                     </div>
-                    <h3 className="text-white font-bold text-2xl mb-1">{pendingBookings.length}</h3>
-                    <p className="text-white/70 text-sm">Pending Requests</p>
                   </Link>
 
                   <Link
                     href="/dashboard/provider/bookings?status=CONFIRMED"
-                    className="group rounded-2xl bg-gradient-to-br from-[#69E6A6]/20 to-[#69E6A6]/5 p-6 border border-[#69E6A6]/30 hover:border-[#69E6A6]/50 transition-all duration-300 hover:scale-105"
+                    className="group relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#69E6A6]/30 via-[#69E6A6]/15 to-[#69E6A6]/5 p-6 border border-[#69E6A6]/40 hover:border-[#69E6A6]/60 transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl hover:shadow-[#69E6A6]/20"
                   >
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="w-12 h-12 rounded-xl bg-[#69E6A6] flex items-center justify-center group-hover:scale-110 transition-transform">
-                        <svg className="w-6 h-6 text-[#0A2640]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    {/* Animated background pattern */}
+                    <div className="absolute inset-0 opacity-10">
+                      <div className="absolute top-0 left-0 w-32 h-32 bg-[#69E6A6] rounded-full blur-3xl group-hover:scale-150 transition-transform duration-700"></div>
+                      <div className="absolute bottom-0 right-0 w-24 h-24 bg-[#69E6A6] rounded-full blur-2xl group-hover:scale-125 transition-transform duration-500"></div>
+                    </div>
+                    
+                    <div className="relative z-10">
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="relative">
+                          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#69E6A6] to-[#5dd195] flex items-center justify-center group-hover:rotate-12 group-hover:scale-110 transition-all duration-300 shadow-lg shadow-[#69E6A6]/30">
+                            <svg className="w-7 h-7 text-[#0A2640]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                          </div>
+                          <div className="absolute -top-1 -right-1 w-4 h-4 bg-[#69E6A6] rounded-full animate-pulse"></div>
+                        </div>
+                        <svg className="w-6 h-6 text-[#69E6A6] group-hover:translate-x-2 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                         </svg>
                       </div>
-                      <svg className="w-5 h-5 text-[#69E6A6] group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                      </svg>
+                      <div className="space-y-1">
+                        <h3 className="text-white font-bold text-3xl mb-1 group-hover:text-[#69E6A6] transition-colors">{confirmedBookings.length}</h3>
+                        <p className="text-white/80 text-sm font-medium">Confirmed</p>
+                        <div className="h-1 w-full bg-white/10 rounded-full overflow-hidden mt-2">
+                          <div className="h-full bg-[#69E6A6] rounded-full" style={{ width: `${Math.min((confirmedBookings.length / 10) * 100, 100)}%` }}></div>
+                        </div>
+                      </div>
                     </div>
-                    <h3 className="text-white font-bold text-2xl mb-1">{confirmedBookings.length}</h3>
-                    <p className="text-white/70 text-sm">Confirmed</p>
                   </Link>
 
-                  <div className="rounded-2xl bg-gradient-to-br from-blue-500/20 to-blue-500/5 p-6 border border-blue-500/30">
-                    <div className="w-12 h-12 rounded-xl bg-blue-500 flex items-center justify-center mb-2">
-                      <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
+                  <div className="group relative overflow-hidden rounded-3xl bg-gradient-to-br from-blue-500/30 via-blue-500/15 to-blue-500/5 p-6 border border-blue-500/40 hover:border-blue-500/60 transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl hover:shadow-blue-500/20">
+                    {/* Animated background pattern */}
+                    <div className="absolute inset-0 opacity-10">
+                      <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-700"></div>
+                      <div className="absolute bottom-0 left-0 w-24 h-24 bg-blue-500 rounded-full blur-2xl group-hover:scale-125 transition-transform duration-500"></div>
                     </div>
-                    <h3 className="text-white font-bold text-2xl mb-1">{completedBookings.length}</h3>
-                    <p className="text-white/70 text-sm">Completed</p>
+                    
+                    <div className="relative z-10">
+                      <div className="mb-4">
+                        <div className="relative inline-block">
+                          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500 to-[#3b82f6] flex items-center justify-center group-hover:rotate-12 group-hover:scale-110 transition-all duration-300 shadow-lg shadow-blue-500/30">
+                            <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                          </div>
+                          <div className="absolute -top-1 -right-1 w-4 h-4 bg-blue-500 rounded-full animate-pulse"></div>
+                        </div>
+                      </div>
+                      <div className="space-y-1">
+                        <h3 className="text-white font-bold text-3xl mb-1 group-hover:text-blue-400 transition-colors">{completedBookings.length}</h3>
+                        <p className="text-white/80 text-sm font-medium">Completed</p>
+                        <div className="h-1 w-full bg-white/10 rounded-full overflow-hidden mt-2">
+                          <div className="h-full bg-blue-500 rounded-full" style={{ width: `${Math.min((completedBookings.length / 10) * 100, 100)}%` }}></div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
 
-                  <div className="rounded-2xl bg-gradient-to-br from-[#4A9EFF]/20 to-[#4A9EFF]/5 p-6 border border-[#4A9EFF]/30">
-                    <div className="w-12 h-12 rounded-xl bg-[#4A9EFF] flex items-center justify-center mb-2">
-                      <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                      </svg>
+                  <div className="group relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#4A9EFF]/30 via-[#4A9EFF]/15 to-[#4A9EFF]/5 p-6 border border-[#4A9EFF]/40 hover:border-[#4A9EFF]/60 transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl hover:shadow-[#4A9EFF]/20">
+                    {/* Animated background pattern */}
+                    <div className="absolute inset-0 opacity-10">
+                      <div className="absolute top-0 left-0 w-32 h-32 bg-[#4A9EFF] rounded-full blur-3xl group-hover:scale-150 transition-transform duration-700"></div>
+                      <div className="absolute bottom-0 right-0 w-24 h-24 bg-[#4A9EFF] rounded-full blur-2xl group-hover:scale-125 transition-transform duration-500"></div>
                     </div>
-                    <h3 className="text-white font-bold text-2xl mb-1">{bookings.length}</h3>
-                    <p className="text-white/70 text-sm">Total Bookings</p>
+                    
+                    <div className="relative z-10">
+                      <div className="mb-4">
+                        <div className="relative inline-block">
+                          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#4A9EFF] to-[#3a8eef] flex items-center justify-center group-hover:rotate-12 group-hover:scale-110 transition-all duration-300 shadow-lg shadow-[#4A9EFF]/30">
+                            <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                            </svg>
+                          </div>
+                          <div className="absolute -top-1 -right-1 w-4 h-4 bg-[#4A9EFF] rounded-full animate-pulse"></div>
+                        </div>
+                      </div>
+                      <div className="space-y-1">
+                        <h3 className="text-white font-bold text-3xl mb-1 group-hover:text-[#4A9EFF] transition-colors">{bookings.length}</h3>
+                        <p className="text-white/80 text-sm font-medium">Total Bookings</p>
+                        <div className="h-1 w-full bg-white/10 rounded-full overflow-hidden mt-2">
+                          <div className="h-full bg-[#4A9EFF] rounded-full" style={{ width: `${Math.min((bookings.length / 20) * 100, 100)}%` }}></div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
                 {/* Quick Actions */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                   <Link
                     href="/dashboard/provider/bookings"
-                    className="rounded-2xl bg-[#1C3D5B] p-6 border border-white/10 hover:border-[#69E6A6]/50 transition-all duration-300 hover:scale-105"
+                    className="group rounded-2xl bg-[#1C3D5B] p-6 border border-white/10 hover:border-[#69E6A6]/50 transition-all duration-300 hover:scale-105"
                   >
                     <div className="flex items-center space-x-4">
-                      <div className="w-12 h-12 rounded-full bg-[#69E6A6]/20 flex items-center justify-center">
-                        <svg className="w-6 h-6 text-[#69E6A6]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <div className="w-14 h-14 rounded-xl bg-[#69E6A6]/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <svg className="w-7 h-7 text-[#69E6A6]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                         </svg>
                       </div>
-                      <div>
-                        <h3 className="text-white font-semibold text-lg">My Jobs</h3>
+                      <div className="flex-1">
+                        <h3 className="text-white font-bold text-xl mb-1">My Jobs</h3>
                         <p className="text-white/70 text-sm">View and manage booking requests</p>
                       </div>
-                    </div>
-                  </Link>
-
-                  <Link
-                    href="/dashboard/provider/availability"
-                    className="rounded-2xl bg-[#1C3D5B] p-6 border border-white/10 hover:border-[#69E6A6]/50 transition-all duration-300 hover:scale-105"
-                  >
-                    <div className="flex items-center space-x-4">
-                      <div className="w-12 h-12 rounded-full bg-[#4A9EFF]/20 flex items-center justify-center">
-                        <svg className="w-6 h-6 text-[#4A9EFF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                      </div>
-                      <div>
-                        <h3 className="text-white font-semibold text-lg">Availability</h3>
-                        <p className="text-white/70 text-sm">Set your weekly schedule</p>
-                      </div>
-                    </div>
-                  </Link>
-
-                  <Link
-                    href="/dashboard/provider/verification"
-                    className="rounded-2xl bg-[#1C3D5B] p-6 border border-white/10 hover:border-[#69E6A6]/50 transition-all duration-300 hover:scale-105"
-                  >
-                    <div className="flex items-center space-x-4">
-                      <div className="w-12 h-12 rounded-full bg-[#FFA500]/20 flex items-center justify-center">
-                        <svg className="w-6 h-6 text-[#FFA500]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                        </svg>
-                      </div>
-                      <div>
-                        <h3 className="text-white font-semibold text-lg">Verification</h3>
-                        <p className="text-white/70 text-sm">Complete your verification</p>
-                      </div>
+                      <svg className="w-6 h-6 text-[#69E6A6] group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
                     </div>
                   </Link>
 
                   <Link
                     href="/contact"
-                    className="rounded-2xl bg-[#1C3D5B] p-6 border border-white/10 hover:border-[#4A9EFF]/50 transition-all duration-300 hover:scale-105"
+                    className="group rounded-2xl bg-[#1C3D5B] p-6 border border-white/10 hover:border-[#4A9EFF]/50 transition-all duration-300 hover:scale-105"
                   >
                     <div className="flex items-center space-x-4">
-                      <div className="w-12 h-12 rounded-full bg-[#4A9EFF]/20 flex items-center justify-center">
-                        <svg className="w-6 h-6 text-[#4A9EFF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <div className="w-14 h-14 rounded-xl bg-[#4A9EFF]/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <svg className="w-7 h-7 text-[#4A9EFF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                         </svg>
                       </div>
-                      <div>
-                        <h3 className="text-white font-semibold text-lg">Contact Us</h3>
+                      <div className="flex-1">
+                        <h3 className="text-white font-bold text-xl mb-1">Contact Us</h3>
                         <p className="text-white/70 text-sm">Get help anytime you need it</p>
                       </div>
+                      <svg className="w-6 h-6 text-[#4A9EFF] group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
                     </div>
                   </Link>
                 </div>
