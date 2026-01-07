@@ -7,6 +7,7 @@ export interface VerificationData {
   fullName?: string;
   phoneNumber?: string;
   citizenshipNumber?: string;
+  serviceRole?: string;
   address?: {
     province: string;
     district: string;
@@ -27,6 +28,7 @@ export interface SubmitVerificationData {
   fullName: string;
   phoneNumber: string;
   citizenshipNumber: string;
+  serviceRole: string;
   address: {
     province: string;
     district: string;
@@ -62,6 +64,7 @@ export async function submitVerification(data: SubmitVerificationData): Promise<
     formData.append('fullName', data.fullName);
     formData.append('phoneNumber', data.phoneNumber);
     formData.append('citizenshipNumber', data.citizenshipNumber);
+    formData.append('serviceRole', data.serviceRole);
     formData.append('address', JSON.stringify(data.address));
     
     if (data.citizenshipFrontImage) {

@@ -20,6 +20,7 @@ export function VerificationForm({ onSuccess }: VerificationFormProps) {
     fullName: '',
     phoneNumber: '',
     citizenshipNumber: '',
+    serviceRole: '',
     address: {
       province: '',
       district: '',
@@ -29,6 +30,19 @@ export function VerificationForm({ onSuccess }: VerificationFormProps) {
       street: '',
     },
   });
+
+  const serviceRoles = [
+    'Plumber',
+    'Electrician',
+    'Cleaner',
+    'Carpenter',
+    'Painter',
+    'HVAC Technician',
+    'Appliance Repair Technician',
+    'Gardener/Landscaper',
+    'Pest Control Specialist',
+    'Water Tank Cleaner',
+  ];
 
   const [images, setImages] = useState<{
     citizenshipFront?: File;
@@ -53,6 +67,7 @@ export function VerificationForm({ onSuccess }: VerificationFormProps) {
           fullName: status.fullName || '',
           phoneNumber: status.phoneNumber || '',
           citizenshipNumber: status.citizenshipNumber || '',
+          serviceRole: status.serviceRole || '',
           address: status.address || {
             province: '',
             district: '',
@@ -83,8 +98,8 @@ export function VerificationForm({ onSuccess }: VerificationFormProps) {
     setError('');
 
     // Validation
-    if (!formData.fullName || !formData.phoneNumber || !formData.citizenshipNumber) {
-      setError('Please fill in all required fields');
+    if (!formData.fullName || !formData.phoneNumber || !formData.citizenshipNumber || !formData.serviceRole) {
+      setError('Please fill in all required fields including service role');
       return;
     }
 
@@ -160,12 +175,23 @@ export function VerificationForm({ onSuccess }: VerificationFormProps) {
           {verificationStatus.verificationStatus === 'APPROVED' && (
             <div>
               <p className="text-white/80 mb-2">✅ Your verification has been approved!</p>
+              {verificationStatus.serviceRole && (
+                <p className="text-white/70 text-sm mb-1">
+                  <span className="font-semibold">Service Role:</span> {verificationStatus.serviceRole}
+                </p>
+              )}
               {verificationStatus.verifiedAt && (
                 <p className="text-white/60 text-sm">
                   Verified on: {new Date(verificationStatus.verifiedAt).toLocaleDateString()}
                 </p>
               )}
             </div>
+          )}
+          
+          {verificationStatus.verificationStatus === 'PENDING_REVIEW' && verificationStatus.serviceRole && (
+            <p className="text-white/70 text-sm mt-2">
+              <span className="font-semibold">Service Role:</span> {verificationStatus.serviceRole}
+            </p>
           )}
           
           {verificationStatus.verificationStatus === 'REJECTED' && (
@@ -247,6 +273,41 @@ export function VerificationForm({ onSuccess }: VerificationFormProps) {
           required
           className="w-full rounded-lg border border-white/20 bg-[#0A2640] py-3 px-4 text-white focus:border-[#69E6A6] focus:outline-none focus:ring-2 focus:ring-[#69E6A6]/20 transition-all"
         />
+      </div>
+
+      {/* Service Role */}
+      <div>
+        <label className="block text-sm font-medium text-white/80 mb-2">
+          Service Role <span className="text-red-400">*</span>
+        </label>
+        <div className="relative">
+          <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+            <svg className="w-5 h-5 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+            </svg>
+          </div>
+          <select
+            value={formData.serviceRole}
+            onChange={(e) => setFormData({ ...formData, serviceRole: e.target.value })}
+            required
+            className="w-full rounded-lg border border-white/20 bg-[#0A2640] py-3 pl-10 pr-10 text-white appearance-none cursor-pointer focus:border-[#69E6A6] focus:outline-none focus:ring-2 focus:ring-[#69E6A6]/20 transition-all"
+          >
+            <option value="" disabled className="bg-[#1C3D5B] text-white/70">
+              Select your service role
+            </option>
+            {serviceRoles.map((role) => (
+              <option key={role} value={role} className="bg-[#1C3D5B] text-white">
+                {role}
+              </option>
+            ))}
+          </select>
+          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+            <svg className="w-5 h-5 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </div>
+        </div>
+        <p className="mt-1 text-xs text-white/60">Select the primary service you provide</p>
       </div>
 
       {/* Address Fields */}

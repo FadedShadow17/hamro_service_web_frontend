@@ -182,7 +182,7 @@ export default function ProviderDashboardPage() {
                 </div>
 
                 {/* Quick Actions */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                   <Link
                     href="/dashboard/provider/bookings"
                     className="rounded-2xl bg-[#1C3D5B] p-6 border border-white/10 hover:border-[#69E6A6]/50 transition-all duration-300 hover:scale-105"
@@ -230,6 +230,23 @@ export default function ProviderDashboardPage() {
                       <div>
                         <h3 className="text-white font-semibold text-lg">Verification</h3>
                         <p className="text-white/70 text-sm">Complete your verification</p>
+                      </div>
+                    </div>
+                  </Link>
+
+                  <Link
+                    href="/contact"
+                    className="rounded-2xl bg-[#1C3D5B] p-6 border border-white/10 hover:border-[#4A9EFF]/50 transition-all duration-300 hover:scale-105"
+                  >
+                    <div className="flex items-center space-x-4">
+                      <div className="w-12 h-12 rounded-full bg-[#4A9EFF]/20 flex items-center justify-center">
+                        <svg className="w-6 h-6 text-[#4A9EFF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                        </svg>
+                      </div>
+                      <div>
+                        <h3 className="text-white font-semibold text-lg">Contact Us</h3>
+                        <p className="text-white/70 text-sm">Get help anytime you need it</p>
                       </div>
                     </div>
                   </Link>
