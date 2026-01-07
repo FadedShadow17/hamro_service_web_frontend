@@ -134,53 +134,123 @@ export default function UserDashboardPage() {
             </div>
 
             {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
               <Link
                 href="/dashboard/user/bookings"
-                className="group rounded-2xl bg-gradient-to-br from-[#69E6A6]/20 to-[#69E6A6]/5 p-6 border border-[#69E6A6]/30 hover:border-[#69E6A6]/50 transition-all duration-300 hover:scale-105"
+                className="group relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#69E6A6]/30 via-[#69E6A6]/15 to-[#69E6A6]/5 p-6 border border-[#69E6A6]/40 hover:border-[#69E6A6]/60 transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl hover:shadow-[#69E6A6]/20"
               >
-                <div className="flex items-center justify-between mb-2">
-                  <div className="w-12 h-12 rounded-xl bg-[#69E6A6] flex items-center justify-center group-hover:scale-110 transition-transform">
-                    <svg className="w-6 h-6 text-[#0A2640]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                {/* Animated background pattern */}
+                <div className="absolute inset-0 opacity-10">
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-[#69E6A6] rounded-full blur-3xl group-hover:scale-150 transition-transform duration-700"></div>
+                  <div className="absolute bottom-0 left-0 w-24 h-24 bg-[#69E6A6] rounded-full blur-2xl group-hover:scale-125 transition-transform duration-500"></div>
+                </div>
+                
+                <div className="relative z-10">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="relative">
+                      <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#69E6A6] to-[#5dd195] flex items-center justify-center group-hover:rotate-12 group-hover:scale-110 transition-all duration-300 shadow-lg shadow-[#69E6A6]/30">
+                        <svg className="w-7 h-7 text-[#0A2640]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                        </svg>
+                      </div>
+                      <div className="absolute -top-1 -right-1 w-4 h-4 bg-[#69E6A6] rounded-full animate-pulse"></div>
+                    </div>
+                    <svg className="w-6 h-6 text-[#69E6A6] group-hover:translate-x-2 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                     </svg>
                   </div>
-                  <svg className="w-5 h-5 text-[#69E6A6] group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
+                  <div className="space-y-1">
+                    <h3 className="text-white font-bold text-3xl mb-1 group-hover:text-[#69E6A6] transition-colors">{pendingBookings.length}</h3>
+                    <p className="text-white/80 text-sm font-medium">Active Bookings</p>
+                    <div className="h-1 w-full bg-white/10 rounded-full overflow-hidden mt-2">
+                      <div className="h-full bg-[#69E6A6] rounded-full" style={{ width: `${Math.min((pendingBookings.length / 10) * 100, 100)}%` }}></div>
+                    </div>
+                  </div>
                 </div>
-                <h3 className="text-white font-bold text-2xl mb-1">{pendingBookings.length}</h3>
-                <p className="text-white/70 text-sm">Active Bookings</p>
               </Link>
 
-              <div className="rounded-2xl bg-gradient-to-br from-[#4A9EFF]/20 to-[#4A9EFF]/5 p-6 border border-[#4A9EFF]/30">
-                <div className="w-12 h-12 rounded-xl bg-[#4A9EFF] flex items-center justify-center mb-2">
-                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
+              <div className="group relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#4A9EFF]/30 via-[#4A9EFF]/15 to-[#4A9EFF]/5 p-6 border border-[#4A9EFF]/40 hover:border-[#4A9EFF]/60 transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl hover:shadow-[#4A9EFF]/20">
+                {/* Animated background pattern */}
+                <div className="absolute inset-0 opacity-10">
+                  <div className="absolute top-0 left-0 w-32 h-32 bg-[#4A9EFF] rounded-full blur-3xl group-hover:scale-150 transition-transform duration-700"></div>
+                  <div className="absolute bottom-0 right-0 w-24 h-24 bg-[#4A9EFF] rounded-full blur-2xl group-hover:scale-125 transition-transform duration-500"></div>
                 </div>
-                <h3 className="text-white font-bold text-2xl mb-1">{completedBookings.length}</h3>
-                <p className="text-white/70 text-sm">Completed</p>
+                
+                <div className="relative z-10">
+                  <div className="mb-4">
+                    <div className="relative inline-block">
+                      <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#4A9EFF] to-[#3a8eef] flex items-center justify-center group-hover:rotate-12 group-hover:scale-110 transition-all duration-300 shadow-lg shadow-[#4A9EFF]/30">
+                        <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      </div>
+                      <div className="absolute -top-1 -right-1 w-4 h-4 bg-[#4A9EFF] rounded-full animate-pulse"></div>
+                    </div>
+                  </div>
+                  <div className="space-y-1">
+                    <h3 className="text-white font-bold text-3xl mb-1 group-hover:text-[#4A9EFF] transition-colors">{completedBookings.length}</h3>
+                    <p className="text-white/80 text-sm font-medium">Completed</p>
+                    <div className="h-1 w-full bg-white/10 rounded-full overflow-hidden mt-2">
+                      <div className="h-full bg-[#4A9EFF] rounded-full" style={{ width: `${Math.min((completedBookings.length / 10) * 100, 100)}%` }}></div>
+                    </div>
+                  </div>
+                </div>
               </div>
 
-              <div className="rounded-2xl bg-gradient-to-br from-[#FFA500]/20 to-[#FFA500]/5 p-6 border border-[#FFA500]/30">
-                <div className="w-12 h-12 rounded-xl bg-[#FFA500] flex items-center justify-center mb-2">
-                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                  </svg>
+              <div className="group relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#FFA500]/30 via-[#FFA500]/15 to-[#FFA500]/5 p-6 border border-[#FFA500]/40 hover:border-[#FFA500]/60 transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl hover:shadow-[#FFA500]/20">
+                {/* Animated background pattern */}
+                <div className="absolute inset-0 opacity-10">
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-[#FFA500] rounded-full blur-3xl group-hover:scale-150 transition-transform duration-700"></div>
+                  <div className="absolute bottom-0 left-0 w-24 h-24 bg-[#FFA500] rounded-full blur-2xl group-hover:scale-125 transition-transform duration-500"></div>
                 </div>
-                <h3 className="text-white font-bold text-2xl mb-1">{services.length}</h3>
-                <p className="text-white/70 text-sm">Available Services</p>
+                
+                <div className="relative z-10">
+                  <div className="mb-4">
+                    <div className="relative inline-block">
+                      <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#FFA500] to-[#ff9500] flex items-center justify-center group-hover:rotate-12 group-hover:scale-110 transition-all duration-300 shadow-lg shadow-[#FFA500]/30">
+                        <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                        </svg>
+                      </div>
+                      <div className="absolute -top-1 -right-1 w-4 h-4 bg-[#FFA500] rounded-full animate-pulse"></div>
+                    </div>
+                  </div>
+                  <div className="space-y-1">
+                    <h3 className="text-white font-bold text-3xl mb-1 group-hover:text-[#FFA500] transition-colors">{services.length}</h3>
+                    <p className="text-white/80 text-sm font-medium">Available Services</p>
+                    <div className="h-1 w-full bg-white/10 rounded-full overflow-hidden mt-2">
+                      <div className="h-full bg-[#FFA500] rounded-full" style={{ width: `${Math.min((services.length / 20) * 100, 100)}%` }}></div>
+                    </div>
+                  </div>
+                </div>
               </div>
 
-              <div className="rounded-2xl bg-gradient-to-br from-[#9B59B6]/20 to-[#9B59B6]/5 p-6 border border-[#9B59B6]/30">
-                <div className="w-12 h-12 rounded-xl bg-[#9B59B6] flex items-center justify-center mb-2">
-                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
+              <div className="group relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#9B59B6]/30 via-[#9B59B6]/15 to-[#9B59B6]/5 p-6 border border-[#9B59B6]/40 hover:border-[#9B59B6]/60 transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl hover:shadow-[#9B59B6]/20">
+                {/* Animated background pattern */}
+                <div className="absolute inset-0 opacity-10">
+                  <div className="absolute top-0 left-0 w-32 h-32 bg-[#9B59B6] rounded-full blur-3xl group-hover:scale-150 transition-transform duration-700"></div>
+                  <div className="absolute bottom-0 right-0 w-24 h-24 bg-[#9B59B6] rounded-full blur-2xl group-hover:scale-125 transition-transform duration-500"></div>
                 </div>
-                <h3 className="text-white font-bold text-2xl mb-1">Rs. {services.reduce((sum, s) => sum + (s.basePrice || 0), 0).toLocaleString()}</h3>
-                <p className="text-white/70 text-sm">Total Value</p>
+                
+                <div className="relative z-10">
+                  <div className="mb-4">
+                    <div className="relative inline-block">
+                      <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#9B59B6] to-[#8e44ad] flex items-center justify-center group-hover:rotate-12 group-hover:scale-110 transition-all duration-300 shadow-lg shadow-[#9B59B6]/30">
+                        <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      </div>
+                      <div className="absolute -top-1 -right-1 w-4 h-4 bg-[#9B59B6] rounded-full animate-pulse"></div>
+                    </div>
+                  </div>
+                  <div className="space-y-1">
+                    <h3 className="text-white font-bold text-3xl mb-1 group-hover:text-[#9B59B6] transition-colors">Rs. {services.reduce((sum, s) => sum + (s.basePrice || 0), 0).toLocaleString()}</h3>
+                    <p className="text-white/80 text-sm font-medium">Total Value</p>
+                    <div className="h-1 w-full bg-white/10 rounded-full overflow-hidden mt-2">
+                      <div className="h-full bg-[#9B59B6] rounded-full" style={{ width: `${Math.min((services.reduce((sum, s) => sum + (s.basePrice || 0), 0) / 50000) * 100, 100)}%` }}></div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
 

@@ -5,6 +5,8 @@ import { Service } from '@/lib/api/services.api';
 import Link from 'next/link';
 import Image from 'next/image';
 import { BookingModal } from './BookingModal';
+import { useToastContext } from '@/providers/ToastProvider';
+import { HttpError } from '@/lib/api/http';
 
 interface ServicesGridProps {
   services: Service[];
@@ -13,6 +15,7 @@ interface ServicesGridProps {
 export function ServicesGrid({ services }: ServicesGridProps) {
   const [selectedService, setSelectedService] = useState<Service | null>(null);
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
+  const toast = useToastContext();
 
   const handleBookService = (service: Service) => {
     setSelectedService(service);
@@ -41,11 +44,18 @@ export function ServicesGrid({ services }: ServicesGridProps) {
         area: bookingData.area,
       });
       handleCloseModal();
-      // Refresh the page or show success message
-      window.location.reload();
+      toast.success('Booking created successfully!');
+      // Refresh the page after a short delay to show the toast
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
     } catch (error) {
       console.error('Failed to create booking:', error);
-      alert(error instanceof Error ? error.message : 'Failed to create booking. Please try again.');
+      if (error instanceof HttpError) {
+        toast.error(error.message || 'Failed to create booking. Please try again.');
+      } else {
+        toast.error('Failed to create booking. Please try again.');
+      }
     }
   };
 

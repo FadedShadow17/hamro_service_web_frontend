@@ -6,9 +6,11 @@ import { getUser, isProvider } from '@/lib/auth/auth.storage';
 import { RouteGuard } from '@/components/auth/RouteGuard';
 import { getProviderBookings, acceptBooking, declineBooking, completeBooking, type Booking, type BookingStatus } from '@/lib/api/bookings.api';
 import { HttpError } from '@/lib/api/http';
+import { useToastContext } from '@/providers/ToastProvider';
 
 export default function ProviderBookingsPage() {
   const router = useRouter();
+  const toast = useToastContext();
   const [user, setUser] = useState<ReturnType<typeof getUser>>(null);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
@@ -78,15 +80,18 @@ export default function ProviderBookingsPage() {
   const handleAccept = async (bookingId: string) => {
     try {
       await acceptBooking(bookingId);
+      toast.success('Booking accepted successfully!');
       loadBookings();
     } catch (err) {
       if (err instanceof HttpError) {
         if (err.status === 403 && err.message.includes('verification')) {
-          alert(`${err.message}\n\nPlease complete your verification to accept bookings.`);
-          router.push('/dashboard/provider/verification');
+          toast.error(`${err.message} Please complete your verification to accept bookings.`);
+          setTimeout(() => router.push('/dashboard/provider/verification'), 2000);
         } else {
-          alert(err.message);
+          toast.error(err.message || 'Failed to accept booking');
         }
+      } else {
+        toast.error('Failed to accept booking');
       }
     }
   };
@@ -95,10 +100,13 @@ export default function ProviderBookingsPage() {
     if (!confirm('Are you sure you want to decline this booking?')) return;
     try {
       await declineBooking(bookingId);
+      toast.success('Booking declined');
       loadBookings();
     } catch (err) {
       if (err instanceof HttpError) {
-        alert(err.message);
+        toast.error(err.message || 'Failed to decline booking');
+      } else {
+        toast.error('Failed to decline booking');
       }
     }
   };
@@ -107,15 +115,18 @@ export default function ProviderBookingsPage() {
     if (!confirm('Mark this booking as completed?')) return;
     try {
       await completeBooking(bookingId);
+      toast.success('Booking marked as completed!');
       loadBookings();
     } catch (err) {
       if (err instanceof HttpError) {
         if (err.status === 403 && err.message.includes('verification')) {
-          alert(`${err.message}\n\nPlease complete your verification to mark bookings as complete.`);
-          router.push('/dashboard/provider/verification');
+          toast.error(`${err.message} Please complete your verification to mark bookings as complete.`);
+          setTimeout(() => router.push('/dashboard/provider/verification'), 2000);
         } else {
-          alert(err.message);
+          toast.error(err.message || 'Failed to complete booking');
         }
+      } else {
+        toast.error('Failed to complete booking');
       }
     }
   };

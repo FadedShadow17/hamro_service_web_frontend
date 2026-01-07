@@ -6,9 +6,11 @@ import { getUser, isUser } from '@/lib/auth/auth.storage';
 import { RouteGuard } from '@/components/auth/RouteGuard';
 import { getMyBookings, cancelBooking, type Booking, type BookingStatus } from '@/lib/api/bookings.api';
 import { HttpError } from '@/lib/api/http';
+import { useToastContext } from '@/providers/ToastProvider';
 
 export default function UserBookingsPage() {
   const router = useRouter();
+  const toast = useToastContext();
   const [user, setUser] = useState<ReturnType<typeof getUser>>(null);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
@@ -51,10 +53,13 @@ export default function UserBookingsPage() {
     if (!confirm('Are you sure you want to cancel this booking?')) return;
     try {
       await cancelBooking(bookingId);
+      toast.success('Booking cancelled successfully');
       loadBookings();
     } catch (err) {
       if (err instanceof HttpError) {
-        alert(err.message);
+        toast.error(err.message || 'Failed to cancel booking');
+      } else {
+        toast.error('Failed to cancel booking');
       }
     }
   };

@@ -3,12 +3,14 @@
 import { useState, useEffect } from 'react';
 import { getVerificationStatus, submitVerification, type VerificationData, type SubmitVerificationData } from '@/lib/api/provider-verification.api';
 import { HttpError } from '@/lib/api/http';
+import { useToastContext } from '@/providers/ToastProvider';
 
 interface VerificationFormProps {
   onSuccess?: () => void;
 }
 
 export function VerificationForm({ onSuccess }: VerificationFormProps) {
+  const toast = useToastContext();
   const [loading, setLoading] = useState(false);
   const [loadingStatus, setLoadingStatus] = useState(true);
   const [error, setError] = useState<string>('');
@@ -106,11 +108,11 @@ export function VerificationForm({ onSuccess }: VerificationFormProps) {
         selfieImage: images.selfie,
       });
       
+      toast.success('Verification documents submitted successfully! Your application is now pending review.');
       if (onSuccess) {
         onSuccess();
       } else {
         await loadVerificationStatus();
-        alert('Verification documents submitted successfully! Your application is now pending review.');
       }
     } catch (err) {
       if (err instanceof HttpError) {
