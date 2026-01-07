@@ -81,7 +81,12 @@ export default function ProviderBookingsPage() {
       loadBookings();
     } catch (err) {
       if (err instanceof HttpError) {
-        alert(err.message);
+        if (err.status === 403 && err.message.includes('verification')) {
+          alert(`${err.message}\n\nPlease complete your verification to accept bookings.`);
+          router.push('/dashboard/provider/verification');
+        } else {
+          alert(err.message);
+        }
       }
     }
   };
@@ -105,7 +110,12 @@ export default function ProviderBookingsPage() {
       loadBookings();
     } catch (err) {
       if (err instanceof HttpError) {
-        alert(err.message);
+        if (err.status === 403 && err.message.includes('verification')) {
+          alert(`${err.message}\n\nPlease complete your verification to mark bookings as complete.`);
+          router.push('/dashboard/provider/verification');
+        } else {
+          alert(err.message);
+        }
       }
     }
   };
