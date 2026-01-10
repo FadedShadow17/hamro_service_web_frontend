@@ -25,7 +25,7 @@ export async function getMyPayableBookings(): Promise<Booking[]> {
  */
 export async function payForBooking(
   bookingId: string,
-  paymentMethod?: 'COD' | 'ONLINE'
+  paymentMethod?: 'COD' | 'ONLINE' | 'ESEWA' | 'FONEPAY'
 ): Promise<Booking> {
   try {
     const response = await http<{ message: string; booking: Booking }>(

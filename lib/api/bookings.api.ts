@@ -37,7 +37,7 @@ export interface Booking {
   status: BookingStatus;
   paymentStatus?: 'UNPAID' | 'PAID'; // Payment status
   paidAt?: string; // Date when payment was made (ISO string)
-  paymentMethod?: 'COD' | 'ONLINE'; // Payment method used
+  paymentMethod?: 'COD' | 'ONLINE' | 'ESEWA' | 'FONEPAY'; // Payment method used
   createdAt: string;
   updatedAt: string;
 }

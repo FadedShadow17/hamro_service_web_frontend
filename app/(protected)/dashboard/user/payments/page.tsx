@@ -4,10 +4,11 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { getUser, isUser } from '@/lib/auth/auth.storage';
 import { RouteGuard } from '@/components/auth/RouteGuard';
-import { getMyPayableBookings, payForBooking } from '@/lib/api/payments.api';
+import { getMyPayableBookings } from '@/lib/api/payments.api';
 import { type Booking } from '@/lib/api/bookings.api';
 import { HttpError } from '@/lib/api/http';
 import { useToastContext } from '@/providers/ToastProvider';
+import { PaymentModal } from '@/components/payments/PaymentModal';
 
 export default function PaymentsPage() {
   const router = useRouter();
@@ -17,7 +18,8 @@ export default function PaymentsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>('');
   const [mounted, setMounted] = useState(false);
-  const [payingBookingId, setPayingBookingId] = useState<string | null>(null);
+  const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -55,33 +57,18 @@ export default function PaymentsPage() {
     }
   };
 
-  const handlePayment = async (bookingId: string) => {
-    if (!confirm('Are you sure you want to mark this booking as paid?')) return;
-    
-    setPayingBookingId(bookingId);
-    try {
-      await payForBooking(bookingId, 'COD');
-      toast.success('Payment processed successfully');
-      await loadBookings(); // Refetch to update UI
-    } catch (err) {
-      if (err instanceof HttpError) {
-        if (err.status === 403 && err.code === 'UNAUTHORIZED_USER') {
-          toast.error('This booking does not belong to you');
-        } else if (err.status === 400 && err.code === 'INVALID_BOOKING_STATUS') {
-          toast.error('Only confirmed bookings can be paid');
-        } else if (err.status === 400 && err.code === 'ALREADY_PAID') {
-          toast.error('This booking is already paid');
-          await loadBookings(); // Refetch to update UI
-        } else {
-          toast.error(err.message || 'Failed to process payment. Please try again.');
-        }
-      } else {
-        console.error('Unexpected error processing payment:', err);
-        toast.error('An unexpected error occurred. Please try again.');
-      }
-    } finally {
-      setPayingBookingId(null);
-    }
+  const handlePaymentClick = (booking: Booking) => {
+    setSelectedBooking(booking);
+    setIsModalOpen(true);
+  };
+
+  const handlePaymentSuccess = async () => {
+    await loadBookings(); // Refetch to update UI
+  };
+
+  const handleModalClose = () => {
+    setIsModalOpen(false);
+    setSelectedBooking(null);
   };
 
   const getPaymentStatusColor = (paymentStatus?: string) => {
@@ -145,23 +132,23 @@ export default function PaymentsPage() {
                 </p>
               </div>
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-6">
                 {bookings.map((booking) => (
                   <div
                     key={booking.id}
-                    className="rounded-2xl bg-[#1C3D5B] border border-white/10 p-6 hover:border-[#69E6A6]/50 transition-all"
+                    className="rounded-2xl bg-gradient-to-br from-[#1C3D5B] via-[#0F2A47] to-[#0A2640] border border-white/10 p-8 hover:border-[#69E6A6]/50 hover:shadow-2xl hover:shadow-[#69E6A6]/15 transition-all duration-300 hover:-translate-y-1"
                   >
-                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
                       <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-3">
-                          <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${getPaymentStatusColor(booking.paymentStatus)}`}>
+                        <div className="flex items-center gap-3 mb-4">
+                          <span className={`px-4 py-1.5 rounded-lg text-xs font-bold border ${getPaymentStatusColor(booking.paymentStatus)}`}>
                             {booking.paymentStatus === 'PAID' ? 'PAID' : 'UNPAID'}
                           </span>
                           <span className="text-white/50 text-sm">
                             Booking #{booking.id.slice(-8)}
                           </span>
                         </div>
-                        <div className="space-y-2">
+                        <div className="space-y-3">
                           {booking.service && (
                             <div className="flex items-center gap-2 text-white/80">
                               <svg className="w-5 h-5 text-[#69E6A6]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -226,16 +213,18 @@ export default function PaymentsPage() {
                       <div className="flex flex-col sm:flex-row gap-2">
                         {(booking.paymentStatus !== 'PAID') ? (
                           <button
-                            onClick={() => handlePayment(booking.id)}
-                            disabled={payingBookingId === booking.id}
-                            className="px-6 py-2 bg-[#69E6A6] hover:bg-[#5dd195] text-[#0A2640] rounded-lg font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            onClick={() => handlePaymentClick(booking)}
+                            className="px-6 py-3 bg-[#69E6A6] hover:bg-[#5dd195] text-[#0A2640] rounded-lg font-bold transition-colors shadow-lg hover:shadow-xl"
                           >
-                            {payingBookingId === booking.id ? 'Processing...' : 'Make Payment'}
+                            Make Payment
                           </button>
                         ) : (
-                          <span className="px-6 py-2 bg-[#69E6A6]/20 border border-[#69E6A6]/50 text-[#69E6A6] rounded-lg font-semibold text-center">
-                            Paid
-                          </span>
+                          <div className="px-6 py-3 bg-[#69E6A6]/20 border border-[#69E6A6]/50 text-[#69E6A6] rounded-lg font-semibold text-center flex items-center justify-center gap-2">
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            </svg>
+                            <span>Paid</span>
+                          </div>
                         )}
                       </div>
                     </div>
@@ -246,6 +235,16 @@ export default function PaymentsPage() {
           </div>
         </div>
       </div>
+
+      {/* Payment Modal */}
+      {selectedBooking && (
+        <PaymentModal
+          isOpen={isModalOpen}
+          onClose={handleModalClose}
+          booking={selectedBooking}
+          onSuccess={handlePaymentSuccess}
+        />
+      )}
     </RouteGuard>
   );
 }

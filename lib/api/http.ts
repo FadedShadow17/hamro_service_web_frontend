@@ -1,3 +1,5 @@
+import { clearAuth } from '@/lib/auth/auth.storage';
+
 type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 
 interface RequestOptions extends RequestInit {
@@ -65,6 +67,28 @@ export async function http<T = unknown>(
       const errorMessage = data.message || data.error || `HTTP ${response.status}: ${response.statusText}`;
       const errors = data.errors || data.validationErrors;
       const code = data.code;
+
+      // Handle 401 authentication errors globally
+      if (response.status === 401) {
+        // Clear auth data
+        if (typeof window !== 'undefined') {
+          clearAuth();
+          // Redirect to login page with current path as next parameter
+          const currentPath = window.location.pathname + window.location.search;
+          const redirectPath = currentPath !== '/login' && currentPath !== '/register'
+            ? `/login?next=${encodeURIComponent(currentPath)}`
+            : '/login';
+          
+          // Queue redirect in next event loop tick to ensure it happens before error propagation
+          // This prevents Next.js error overlay from appearing
+          Promise.resolve().then(() => {
+            window.location.replace(redirectPath);
+          });
+          
+          // Throw error - redirect will happen before it can be displayed
+          throw new HttpError(response.status, errorMessage, errors, code);
+        }
+      }
 
       throw new HttpError(response.status, errorMessage, errors, code);
     }

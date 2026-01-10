@@ -10,6 +10,7 @@ import { getVerificationStatus, type VerificationStatus } from '@/lib/api/provid
 import { HttpError } from '@/lib/api/http';
 import { LoadingSkeleton, BookingCardSkeleton } from '@/components/dashboard/LoadingSkeleton';
 import { StatCard, SectionCard, BookingCard } from '@/components/dashboard';
+import { WebsiteRating } from '@/components/dashboard/WebsiteRating';
 import { useToastContext } from '@/providers/ToastProvider';
 
 export default function ProviderDashboardPage() {
@@ -375,6 +376,11 @@ export default function ProviderDashboardPage() {
                 </div>
               </>
             )}
+
+            {/* Website Rating Section */}
+            <div className="mt-16">
+              <WebsiteRating />
+            </div>
           </div>
         </div>
       </div>

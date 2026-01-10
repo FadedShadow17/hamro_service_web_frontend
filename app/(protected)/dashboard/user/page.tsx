@@ -8,6 +8,7 @@ import { getServices, type Service } from '@/lib/api/services.api';
 import { getMyBookings, type Booking } from '@/lib/api/bookings.api';
 import { ServicesGrid } from '@/components/services/ServicesGrid';
 import { StatCard, SectionCard, BookingCard } from '@/components/dashboard';
+import { WebsiteRating } from '@/components/dashboard/WebsiteRating';
 import Link from 'next/link';
 
 export default function UserDashboardPage() {
@@ -456,6 +457,11 @@ export default function UserDashboardPage() {
               ) : (
                 <ServicesGrid services={filteredServices} />
               )}
+            </div>
+
+            {/* Website Rating Section */}
+            <div className="mt-16">
+              <WebsiteRating />
             </div>
           </div>
         </div>

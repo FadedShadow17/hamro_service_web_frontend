@@ -107,6 +107,11 @@ export default function ProviderBookingsPage() {
     } catch (err) {
       // Prevent error from propagating to Next.js error overlay
       if (err instanceof HttpError) {
+        // Handle 401 errors - redirect is handled globally in http.ts
+        // Just return early to prevent error overlay
+        if (err.status === 401) {
+          return;
+        }
         if (err.status === 404 && err.message.includes('Provider profile not found')) {
           // Silently handle - provider needs to complete verification first
           setBookings([]);
@@ -447,23 +452,31 @@ export default function ProviderBookingsPage() {
                 </p>
               </div>
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-6">
                 {displayedBookings.map((booking) => (
                   <div
                     key={booking.id}
-                    className="rounded-2xl bg-[#1C3D5B] border border-white/10 p-6 hover:border-[#69E6A6]/50 transition-all"
+                    className="rounded-2xl bg-gradient-to-br from-[#1C3D5B] via-[#0F2A47] to-[#0A2640] border border-white/10 p-8 hover:border-[#69E6A6]/50 hover:shadow-2xl hover:shadow-[#69E6A6]/15 transition-all duration-300 hover:-translate-y-1"
                   >
-                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
                       <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-3">
-                          <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${getStatusColor(booking.status)}`}>
+                        <div className="flex items-center gap-3 mb-4">
+                          <span className={`px-4 py-1.5 rounded-lg text-xs font-bold border ${getStatusColor(booking.status)}`}>
                             {booking.status}
                           </span>
+                          {booking.paymentStatus === 'PAID' && (
+                            <span className="px-3 py-1 rounded-lg text-xs font-semibold bg-[#69E6A6]/20 text-[#69E6A6] border border-[#69E6A6]/50 flex items-center gap-1.5">
+                              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                              </svg>
+                              <span>PAID</span>
+                            </span>
+                          )}
                           <span className="text-white/50 text-sm">
                             Booking #{booking.id.slice(-8)}
                           </span>
                         </div>
-                        <div className="space-y-2">
+                        <div className="space-y-3">
                           <div className="flex items-center gap-2 text-white">
                             <svg className="w-5 h-5 text-[#69E6A6]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -513,6 +526,19 @@ export default function ProviderBookingsPage() {
                               )}
                               {!booking.user.phone && (
                                 <span className="text-white/50 text-sm">({booking.user.email})</span>
+                              )}
+                            </div>
+                          )}
+                          {booking.paymentStatus === 'PAID' && booking.paymentMethod && (
+                            <div className="flex items-center gap-2 text-[#69E6A6] text-sm mt-2 pt-2 border-t border-white/10">
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                              </svg>
+                              <span>Paid via {booking.paymentMethod}</span>
+                              {booking.paidAt && (
+                                <span className="text-white/50 text-xs">
+                                  • {new Date(booking.paidAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                                </span>
                               )}
                             </div>
                           )}
