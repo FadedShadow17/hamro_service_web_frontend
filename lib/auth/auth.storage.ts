@@ -4,7 +4,7 @@ export interface User {
   email: string;
   phone?: string;
   profileImageUrl?: string;
-  role: 'user' | 'provider';
+  role: 'user' | 'provider' | 'service_provider';
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -12,6 +12,7 @@ export interface User {
 export const USER_ROLES = {
   USER: 'user',
   PROVIDER: 'provider',
+  SERVICE_PROVIDER: 'service_provider',
 } as const;
 
 export type UserRole = typeof USER_ROLES[keyof typeof USER_ROLES];

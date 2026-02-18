@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import { handleSectionNavigation } from '@/utils/scrollToSection';
 import { isAuthenticated } from '@/lib/auth/auth.storage';
+import { RatingModal } from '@/components/footer/RatingModal';
 
 const FooterComponent = () => {
   const currentYear = new Date().getFullYear();
@@ -13,6 +14,7 @@ const FooterComponent = () => {
   const router = useRouter();
   const [authenticated, setAuthenticated] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [isRatingModalOpen, setIsRatingModalOpen] = useState(false);
 
   // Check authentication on client side to avoid hydration mismatch
   useEffect(() => {
@@ -69,7 +71,7 @@ const FooterComponent = () => {
               <span className="text-xl font-bold">Hamro Service</span>
             </div>
             <p className="text-white/70 text-sm max-w-md mb-4">
-              Your trusted platform for booking home services. Connect with
+              Your trusted platform for booking home services in Kathmandu. Connect with
               skilled professionals for all your service needs. Quality service, every time.
             </p>
             <div className="flex space-x-3">
@@ -126,6 +128,14 @@ const FooterComponent = () => {
                 </Link>
               </li>
               <li>
+                <button
+                  onClick={() => setIsRatingModalOpen(true)}
+                  className="text-white/70 hover:text-[#69E6A6] transition-all hover:translate-x-1 inline-block text-left"
+                >
+                  Rate Your Experience
+                </button>
+              </li>
+              <li>
                 <Link href="/privacy" className="text-white/70 hover:text-[#69E6A6] transition-all hover:translate-x-1 inline-block">
                   Privacy Policy
                 </Link>
@@ -138,7 +148,7 @@ const FooterComponent = () => {
             </ul>
             <div className="mt-4 text-sm text-white/70">
               <p>Email: support@hamroservice.com</p>
-              <p className="mt-1">Phone: +977-1-XXXXXXX</p>
+              <p className="mt-1">Phone: +977-9800000000</p>
             </div>
           </div>
         </div>
@@ -150,6 +160,9 @@ const FooterComponent = () => {
           </p>
         </div>
       </div>
+
+      {/* Rating Modal */}
+      <RatingModal isOpen={isRatingModalOpen} onClose={() => setIsRatingModalOpen(false)} />
     </footer>
   );
 };

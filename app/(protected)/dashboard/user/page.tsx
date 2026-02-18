@@ -8,7 +8,6 @@ import { getServices, type Service } from '@/lib/api/services.api';
 import { getMyBookings, type Booking } from '@/lib/api/bookings.api';
 import { ServicesGrid } from '@/components/services/ServicesGrid';
 import { StatCard, SectionCard, BookingCard } from '@/components/dashboard';
-import { WebsiteRating } from '@/components/dashboard/WebsiteRating';
 import Link from 'next/link';
 
 export default function UserDashboardPage() {
@@ -148,10 +147,19 @@ export default function UserDashboardPage() {
           <div className="max-w-7xl mx-auto">
             {/* Header Section */}
             <div className="mb-10">
-              <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">
-                Welcome back, {user.name}! 
-              </h1>
-              <p className="text-white/70 text-lg">Browse and book services for your home</p>
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#69E6A6]/20 to-[#69E6A6]/10 flex items-center justify-center border border-[#69E6A6]/20">
+                  <svg className="w-6 h-6 text-[#69E6A6]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                </div>
+                <div>
+                  <h1 className="text-3xl md:text-4xl font-bold text-white mb-1">
+                    Welcome back, {user.name}! 
+                  </h1>
+                  <p className="text-white/70 text-lg">Browse and book services for your home</p>
+                </div>
+              </div>
             </div>
 
             {/* Stats Cards */}
@@ -202,7 +210,7 @@ export default function UserDashboardPage() {
 
               <StatCard
                 value={payableBookings.length}
-                label="Payments"
+                label="Pending Payments"
                 icon={
                   <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
@@ -211,6 +219,7 @@ export default function UserDashboardPage() {
                 color="purple"
                 href="/dashboard/user/payments"
                 progress={Math.min((payableBookings.length / 10) * 100, 100)}
+                badge={payableBookings.length > 0 ? { text: 'Pay Now', color: 'yellow' } : undefined}
               />
             </div>
 
@@ -243,56 +252,100 @@ export default function UserDashboardPage() {
             )}
 
             {/* Quick Actions */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
-              <Link
-                href="/dashboard/user/bookings"
-                className="group rounded-2xl bg-gradient-to-br from-[#1C3D5B] to-[#0A2640] p-6 border border-white/10 hover:border-[#69E6A6]/50 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:shadow-[#69E6A6]/10"
-              >
-                <div className="flex items-center space-x-4">
-                  <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-[#69E6A6]/20 to-[#69E6A6]/10 flex items-center justify-center group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 shadow-lg shadow-[#69E6A6]/20">
-                    <svg className="w-7 h-7 text-[#69E6A6]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+            <div className="mb-8">
+              <div className="flex items-center gap-3 mb-6">
+                <svg className="w-6 h-6 text-[#69E6A6]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+                <h2 className="text-2xl md:text-3xl font-bold text-white">Quick Actions</h2>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <Link
+                  href="/dashboard/user/bookings"
+                  className="group rounded-2xl bg-gradient-to-br from-[#1C3D5B] to-[#0A2640] p-6 border border-white/10 hover:border-[#69E6A6]/50 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:shadow-[#69E6A6]/10"
+                >
+                  <div className="flex items-center space-x-4">
+                    <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-[#69E6A6]/20 to-[#69E6A6]/10 flex items-center justify-center group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 shadow-lg shadow-[#69E6A6]/20">
+                      <svg className="w-7 h-7 text-[#69E6A6]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                      </svg>
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-white font-bold text-xl mb-1 group-hover:text-[#69E6A6] transition-colors">My Bookings</h3>
+                      <p className="text-white/70 text-sm">View and manage all your service bookings</p>
+                    </div>
+                    <svg className="w-6 h-6 text-[#69E6A6] group-hover:translate-x-2 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                     </svg>
                   </div>
-                  <div className="flex-1">
-                    <h3 className="text-white font-bold text-xl mb-1 group-hover:text-[#69E6A6] transition-colors">My Bookings</h3>
-                    <p className="text-white/70 text-sm">View and manage your service bookings</p>
-                  </div>
-                  <svg className="w-6 h-6 text-[#69E6A6] group-hover:translate-x-2 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
-                </div>
-              </Link>
+                </Link>
 
-              <Link
-                href="/contact"
-                className="group rounded-2xl bg-gradient-to-br from-[#1C3D5B] to-[#0A2640] p-6 border border-white/10 hover:border-[#4A9EFF]/50 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:shadow-[#4A9EFF]/10"
-              >
-                <div className="flex items-center space-x-4">
-                  <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-[#4A9EFF]/20 to-[#4A9EFF]/10 flex items-center justify-center group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 shadow-lg shadow-[#4A9EFF]/20">
-                    <svg className="w-7 h-7 text-[#4A9EFF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                    </svg>
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="text-white font-bold text-xl mb-1 group-hover:text-[#4A9EFF] transition-colors">Contact Us</h3>
-                    <p className="text-white/70 text-sm">Get help anytime you need it</p>
-                  </div>
-                  <svg className="w-6 h-6 text-[#4A9EFF] group-hover:translate-x-2 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
-                </div>
-              </Link>
+                {payableBookings.length > 0 && (
+                  <Link
+                    href="/dashboard/user/payments"
+                    className="group rounded-2xl bg-gradient-to-br from-[#1C3D5B] to-[#0A2640] p-6 border border-yellow-500/30 hover:border-yellow-500/50 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:shadow-yellow-500/10"
+                  >
+                    <div className="flex items-center space-x-4">
+                      <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-yellow-500/20 to-yellow-500/10 flex items-center justify-center group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 shadow-lg shadow-yellow-500/20">
+                        <svg className="w-7 h-7 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                        </svg>
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <h3 className="text-white font-bold text-xl group-hover:text-yellow-400 transition-colors">Make Payment</h3>
+                          <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-yellow-500/20 text-yellow-400 border border-yellow-500/50">
+                            {payableBookings.length} pending
+                          </span>
+                        </div>
+                        <p className="text-white/70 text-sm">Pay for your confirmed bookings</p>
+                      </div>
+                      <svg className="w-6 h-6 text-yellow-400 group-hover:translate-x-2 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </div>
+                  </Link>
+                )}
+
+                {payableBookings.length === 0 && (
+                  <Link
+                    href="/contact"
+                    className="group rounded-2xl bg-gradient-to-br from-[#1C3D5B] to-[#0A2640] p-6 border border-white/10 hover:border-[#4A9EFF]/50 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:shadow-[#4A9EFF]/10"
+                  >
+                    <div className="flex items-center space-x-4">
+                      <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-[#4A9EFF]/20 to-[#4A9EFF]/10 flex items-center justify-center group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 shadow-lg shadow-[#4A9EFF]/20">
+                        <svg className="w-7 h-7 text-[#4A9EFF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                        </svg>
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="text-white font-bold text-xl mb-1 group-hover:text-[#4A9EFF] transition-colors">Contact Us</h3>
+                        <p className="text-white/70 text-sm">Get help anytime you need it</p>
+                      </div>
+                      <svg className="w-6 h-6 text-[#4A9EFF] group-hover:translate-x-2 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </div>
+                  </Link>
+                )}
+              </div>
             </div>
 
             {/* Services Section */}
             <div id="services" className="mb-10 scroll-mt-20">
               <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
-                <div>
-                  <h2 className="text-2xl md:text-3xl font-bold text-white mb-2">
-                    Browse Services
-                  </h2>
-                  <p className="text-white/70 text-lg">Discover professional services for your home</p>
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#69E6A6]/20 to-[#69E6A6]/10 flex items-center justify-center border border-[#69E6A6]/20">
+                    <svg className="w-6 h-6 text-[#69E6A6]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h2 className="text-2xl md:text-3xl font-bold text-white mb-2">
+                      Browse Services
+                    </h2>
+                    <p className="text-white/70 text-lg">Discover professional services for your home</p>
+                  </div>
                 </div>
               </div>
 
@@ -459,10 +512,6 @@ export default function UserDashboardPage() {
               )}
             </div>
 
-            {/* Website Rating Section */}
-            <div className="mt-16">
-              <WebsiteRating />
-            </div>
           </div>
         </div>
       </div>

@@ -26,6 +26,21 @@ export interface GetMyContactsResponse {
   contacts: ContactMessage[];
 }
 
+export interface Testimonial {
+  id: string;
+  name: string;
+  role: string;
+  content: string;
+  rating: number;
+  service?: string;
+  createdAt: string;
+}
+
+export interface GetTestimonialsResponse {
+  message: string;
+  testimonials: Testimonial[];
+}
+
 /**
  * Get authorization header with token
  */
@@ -76,3 +91,21 @@ export async function getMyContacts(): Promise<GetMyContactsResponse> {
   }
 }
 
+/**
+ * Get approved testimonials (public endpoint)
+ * GET /api/v1/contact/testimonials
+ */
+export async function getTestimonials(limit?: number): Promise<GetTestimonialsResponse> {
+  try {
+    const query = limit ? `?limit=${limit}` : '';
+    const response = await http<GetTestimonialsResponse>(`/api/v1/contact/testimonials${query}`, {
+      method: 'GET',
+    });
+    return response;
+  } catch (error) {
+    if (error instanceof HttpError) {
+      throw error;
+    }
+    throw new HttpError(500, 'Failed to fetch testimonials');
+  }
+}

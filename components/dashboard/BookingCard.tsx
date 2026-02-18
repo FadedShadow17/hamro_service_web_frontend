@@ -119,14 +119,21 @@ export function BookingCard({
               <span className="text-sm">{status.icon}</span>
               <span>{booking.status}</span>
             </span>
-            {booking.paymentStatus === 'PAID' && (
+            {booking.paymentStatus === 'PAID' ? (
               <span className="px-3 py-1 rounded-lg text-xs font-semibold bg-[#69E6A6]/20 text-[#69E6A6] border border-[#69E6A6]/50 flex items-center gap-1.5">
                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
                 <span>PAID</span>
               </span>
-            )}
+            ) : booking.status === 'CONFIRMED' && booking.paymentStatus !== 'PAID' ? (
+              <span className="px-3 py-1 rounded-lg text-xs font-semibold bg-yellow-500/20 text-yellow-400 border border-yellow-500/50 flex items-center gap-1.5">
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span>Payment Pending</span>
+              </span>
+            ) : null}
             <span className="text-white/30 text-[10px] font-mono">
               #{booking.id.slice(-6)}
             </span>
@@ -181,20 +188,32 @@ export function BookingCard({
             </div>
           </div>
 
-          {/* Payment Method Display */}
-          {booking.paymentStatus === 'PAID' && booking.paymentMethod && (
+          {/* Payment Status Display */}
+          {booking.paymentStatus === 'PAID' && booking.paymentMethod ? (
             <div className="flex items-center gap-3 pt-2 border-t border-white/10">
               <div className="w-10 h-10 rounded-xl bg-green-500/10 flex items-center justify-center flex-shrink-0 border border-green-500/20">
                 <svg className="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
                 </svg>
               </div>
-              <div>
-                <p className="text-white/50 text-[11px] mb-1 font-medium">Payment Method</p>
-                <p className="text-white font-semibold text-sm capitalize">{booking.paymentMethod}</p>
+              <div className="flex-1">
+                <p className="text-white/50 text-[11px] mb-1 font-medium">Payment Status</p>
+                <p className="text-[#69E6A6] font-semibold text-sm capitalize">Paid via {booking.paymentMethod}</p>
               </div>
             </div>
-          )}
+          ) : booking.status === 'CONFIRMED' && booking.paymentStatus !== 'PAID' ? (
+            <div className="flex items-center gap-3 pt-2 border-t border-yellow-500/20">
+              <div className="w-10 h-10 rounded-xl bg-yellow-500/10 flex items-center justify-center flex-shrink-0 border border-yellow-500/20">
+                <svg className="w-5 h-5 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <div className="flex-1">
+                <p className="text-white/50 text-[11px] mb-1 font-medium">Payment Status</p>
+                <p className="text-yellow-400 font-semibold text-sm">Payment Required</p>
+              </div>
+            </div>
+          ) : null}
         </div>
 
         {/* Provider/User Section */}

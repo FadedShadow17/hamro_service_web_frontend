@@ -15,7 +15,7 @@ export function Hero() {
           {/* Left Side - Text Content */}
           <div className="text-center lg:text-left">
             <div className="inline-block mb-4 px-4 py-2 rounded-full bg-[#69E6A6]/10 border border-[#69E6A6]/20">
-              <span className="text-[#69E6A6] text-sm font-semibold">Kathmandu's #1 Home Service Platform</span>
+              <span className="text-[#69E6A6] text-sm font-semibold">Best Home Service Platform in Nepal</span>
             </div>
             
             <h1 className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-white mb-6 leading-tight">
@@ -26,7 +26,7 @@ export function Hero() {
             </h1>
             
             <p className="text-white/80 text-lg md:text-xl mb-8 max-w-2xl mx-auto lg:mx-0 leading-relaxed">
-              Connect with verified, skilled professionals for all your home service needs in Nepal. 
+              Connect with verified, skilled professionals for all your home service needs in Kathmandu. 
               From plumbing to electrical work, cleaning to repairs—we've got you covered with quality service and transparent pricing.
             </p>
             

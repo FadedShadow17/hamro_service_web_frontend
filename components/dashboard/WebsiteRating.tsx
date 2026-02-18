@@ -29,12 +29,13 @@ export function WebsiteRating() {
       setIsSubmitting(true);
       
       const subject = `Website Rating: ${rating} Star${rating > 1 ? 's' : ''}`;
-      const message = `Rating: ${rating}/5 stars\n\nComment:\n${comment}`;
+      const message = comment;
 
       await createContact({
         subject,
         message,
-        category: 'General',
+        category: 'Testimonial',
+        rating: rating,
       });
 
       setIsSubmitted(true);

@@ -10,7 +10,6 @@ import { getVerificationStatus, type VerificationStatus } from '@/lib/api/provid
 import { HttpError } from '@/lib/api/http';
 import { LoadingSkeleton, BookingCardSkeleton } from '@/components/dashboard/LoadingSkeleton';
 import { StatCard, SectionCard, BookingCard } from '@/components/dashboard';
-import { WebsiteRating } from '@/components/dashboard/WebsiteRating';
 import { useToastContext } from '@/providers/ToastProvider';
 
 export default function ProviderDashboardPage() {
@@ -197,15 +196,52 @@ export default function ProviderDashboardPage() {
           <div className="max-w-7xl mx-auto">
             {/* Header Section */}
             <div className="mb-10">
-              <div className="flex items-center justify-between mb-2">
-                <div>
-                  <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">
-                    Welcome back, {user.name}! 
-                  </h1>
-                  <p className="text-white/70 text-lg">Manage your bookings and services</p>
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#69E6A6]/20 to-[#69E6A6]/10 flex items-center justify-center border border-[#69E6A6]/20">
+                    <svg className="w-6 h-6 text-[#69E6A6]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h1 className="text-3xl md:text-4xl font-bold text-white mb-1">
+                      Welcome back, {user.name}! 
+                    </h1>
+                    <p className="text-white/70 text-lg">Manage your bookings and services</p>
+                  </div>
                 </div>
                 {getVerificationBadge()}
               </div>
+              {verificationStatus && verificationStatus !== 'APPROVED' && (
+                <div className="mt-4 p-4 rounded-xl bg-yellow-500/10 border border-yellow-500/30 flex items-start gap-3">
+                  <svg className="w-5 h-5 text-yellow-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <div className="flex-1">
+                    <p className="text-yellow-400 font-semibold text-sm mb-1">
+                      {verificationStatus === 'NOT_SUBMITTED' ? 'Complete Your Verification' : 
+                       verificationStatus === 'PENDING_REVIEW' ? 'Verification Under Review' :
+                       'Verification Rejected'}
+                    </p>
+                    <p className="text-yellow-300/80 text-xs">
+                      {verificationStatus === 'NOT_SUBMITTED' ? 'Submit your verification documents to start accepting bookings.' :
+                       verificationStatus === 'PENDING_REVIEW' ? 'Your verification is being reviewed. You can still view bookings.' :
+                       'Please update your verification information to continue accepting bookings.'}
+                    </p>
+                    {verificationStatus !== 'PENDING_REVIEW' && (
+                      <Link 
+                        href="/dashboard/provider/verification"
+                        className="inline-flex items-center gap-1 mt-2 text-yellow-400 hover:text-yellow-300 text-xs font-semibold transition-colors"
+                      >
+                        <span>Go to Verification</span>
+                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                      </Link>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
 
             {loading ? (
@@ -268,46 +304,79 @@ export default function ProviderDashboardPage() {
                 </div>
 
                 {/* Quick Actions */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
-                  <Link
-                    href="/dashboard/provider/bookings"
-                    className="group rounded-2xl bg-gradient-to-br from-[#1C3D5B] to-[#0A2640] p-6 border border-white/10 hover:border-[#69E6A6]/50 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:shadow-[#69E6A6]/10"
-                  >
-                    <div className="flex items-center space-x-4">
-                      <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-[#69E6A6]/20 to-[#69E6A6]/10 flex items-center justify-center group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 shadow-lg shadow-[#69E6A6]/20">
-                        <svg className="w-7 h-7 text-[#69E6A6]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                <div className="mb-8">
+                  <div className="flex items-center gap-3 mb-6">
+                    <svg className="w-6 h-6 text-[#69E6A6]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                    <h2 className="text-2xl md:text-3xl font-bold text-white">Quick Actions</h2>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <Link
+                      href="/dashboard/provider/bookings"
+                      className="group rounded-2xl bg-gradient-to-br from-[#1C3D5B] to-[#0A2640] p-6 border border-white/10 hover:border-[#69E6A6]/50 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:shadow-[#69E6A6]/10"
+                    >
+                      <div className="flex items-center space-x-4">
+                        <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-[#69E6A6]/20 to-[#69E6A6]/10 flex items-center justify-center group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 shadow-lg shadow-[#69E6A6]/20">
+                          <svg className="w-7 h-7 text-[#69E6A6]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                          </svg>
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="text-white font-bold text-xl mb-1 group-hover:text-[#69E6A6] transition-colors">My Jobs</h3>
+                          <p className="text-white/70 text-sm">View and manage all booking requests</p>
+                          {pendingCount > 0 && (
+                            <p className="text-yellow-400 text-xs font-medium mt-1">{pendingCount} pending request{pendingCount !== 1 ? 's' : ''} waiting</p>
+                          )}
+                        </div>
+                        <svg className="w-6 h-6 text-[#69E6A6] group-hover:translate-x-2 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                         </svg>
                       </div>
-                      <div className="flex-1">
-                        <h3 className="text-white font-bold text-xl mb-1 group-hover:text-[#69E6A6] transition-colors">My Jobs</h3>
-                        <p className="text-white/70 text-sm">View and manage booking requests</p>
-                      </div>
-                      <svg className="w-6 h-6 text-[#69E6A6] group-hover:translate-x-2 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                      </svg>
-                    </div>
-                  </Link>
+                    </Link>
 
-                  <Link
-                    href="/contact"
-                    className="group rounded-2xl bg-gradient-to-br from-[#1C3D5B] to-[#0A2640] p-6 border border-white/10 hover:border-[#4A9EFF]/50 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:shadow-[#4A9EFF]/10"
-                  >
-                    <div className="flex items-center space-x-4">
-                      <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-[#4A9EFF]/20 to-[#4A9EFF]/10 flex items-center justify-center group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 shadow-lg shadow-[#4A9EFF]/20">
-                        <svg className="w-7 h-7 text-[#4A9EFF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                        </svg>
-                      </div>
-                      <div className="flex-1">
-                        <h3 className="text-white font-bold text-xl mb-1 group-hover:text-[#4A9EFF] transition-colors">Contact Us</h3>
-                        <p className="text-white/70 text-sm">Get help anytime you need it</p>
-                      </div>
-                      <svg className="w-6 h-6 text-[#4A9EFF] group-hover:translate-x-2 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                      </svg>
-                    </div>
-                  </Link>
+                    {verificationStatus !== 'APPROVED' ? (
+                      <Link
+                        href="/dashboard/provider/verification"
+                        className="group rounded-2xl bg-gradient-to-br from-yellow-500/10 to-yellow-500/5 p-6 border border-yellow-500/30 hover:border-yellow-500/50 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:shadow-yellow-500/10"
+                      >
+                        <div className="flex items-center space-x-4">
+                          <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-yellow-500/20 to-yellow-500/10 flex items-center justify-center group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 shadow-lg shadow-yellow-500/20">
+                            <svg className="w-7 h-7 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                            </svg>
+                          </div>
+                          <div className="flex-1">
+                            <h3 className="text-white font-bold text-xl mb-1 group-hover:text-yellow-400 transition-colors">Verification</h3>
+                            <p className="text-white/70 text-sm">Complete your profile verification</p>
+                          </div>
+                          <svg className="w-6 h-6 text-yellow-400 group-hover:translate-x-2 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                          </svg>
+                        </div>
+                      </Link>
+                    ) : (
+                      <Link
+                        href="/contact"
+                        className="group rounded-2xl bg-gradient-to-br from-[#1C3D5B] to-[#0A2640] p-6 border border-white/10 hover:border-[#4A9EFF]/50 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:shadow-[#4A9EFF]/10"
+                      >
+                        <div className="flex items-center space-x-4">
+                          <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-[#4A9EFF]/20 to-[#4A9EFF]/10 flex items-center justify-center group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 shadow-lg shadow-[#4A9EFF]/20">
+                            <svg className="w-7 h-7 text-[#4A9EFF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                            </svg>
+                          </div>
+                          <div className="flex-1">
+                            <h3 className="text-white font-bold text-xl mb-1 group-hover:text-[#4A9EFF] transition-colors">Contact Us</h3>
+                            <p className="text-white/70 text-sm">Get help anytime you need it</p>
+                          </div>
+                          <svg className="w-6 h-6 text-[#4A9EFF] group-hover:translate-x-2 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                          </svg>
+                        </div>
+                      </Link>
+                    )}
+                  </div>
                 </div>
 
                 {/* Upcoming Jobs & Recent Activity */}
@@ -315,10 +384,10 @@ export default function ProviderDashboardPage() {
                   {/* Upcoming Jobs */}
                   <SectionCard
                     title="Upcoming Jobs"
-                    subtitle="Next 5 bookings sorted by scheduled date"
+                    subtitle={`Your next ${upcomingBookings.length > 0 ? upcomingBookings.length : 'scheduled'} job${upcomingBookings.length !== 1 ? 's' : ''}`}
                     actionLink={{
                       href: '/dashboard/provider/bookings',
-                      text: 'View All',
+                      text: 'View All Jobs',
                     }}
                   >
                     {upcomingBookings.length === 0 ? (
@@ -346,10 +415,10 @@ export default function ProviderDashboardPage() {
                   {/* Recent Activity */}
                   <SectionCard
                     title="Recent Activity"
-                    subtitle="Last 5 bookings by update time"
+                    subtitle={`Your latest ${recentBookings.length > 0 ? recentBookings.length : 'booking'} update${recentBookings.length !== 1 ? 's' : ''}`}
                     actionLink={{
                       href: '/dashboard/provider/bookings',
-                      text: 'View All',
+                      text: 'View All Jobs',
                     }}
                   >
                     {recentBookings.length === 0 ? (
@@ -377,10 +446,6 @@ export default function ProviderDashboardPage() {
               </>
             )}
 
-            {/* Website Rating Section */}
-            <div className="mt-16">
-              <WebsiteRating />
-            </div>
           </div>
         </div>
       </div>

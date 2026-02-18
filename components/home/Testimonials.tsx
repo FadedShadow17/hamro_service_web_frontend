@@ -1,28 +1,86 @@
-const testimonials = [
-  {
-    name: 'Rajesh Shrestha',
-    role: 'Homeowner, Kamalpokhari',
-    content: 'Excellent service! The plumber arrived on time and fixed the issue quickly. Very professional and reasonably priced. Highly recommend Hamro Service!',
-    rating: 5,
-    service: 'Plumbing Repair',
-  },
-  {
-    name: 'Sita Maharjan',
-    role: 'Business Owner, Dillibazar',
-    content: 'I\'ve used Hamro Service multiple times for cleaning and electrical work. Always reliable and the quality is top-notch. The booking process is so convenient!',
-    rating: 5,
-    service: 'Cleaning & Electrical',
-  },
-  {
-    name: 'Amit Kumar',
-    role: 'Property Manager, Boudha',
-    content: 'Great platform for finding trusted professionals. The booking process is simple and the service providers are skilled. Perfect for managing multiple properties.',
-    rating: 5,
-    service: 'Multiple Services',
-  },
-];
+'use client';
+
+import { useState, useEffect } from 'react';
+import { getTestimonials, type Testimonial } from '@/lib/contact/contact.api';
 
 export function Testimonials() {
+  const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string>('');
+
+  useEffect(() => {
+    loadTestimonials();
+  }, []);
+
+  const loadTestimonials = async () => {
+    try {
+      setLoading(true);
+      setError('');
+      const response = await getTestimonials(10);
+      setTestimonials(response.testimonials);
+    } catch (err) {
+      console.error('Error loading testimonials:', err);
+      setError('Failed to load testimonials');
+     
+      setTestimonials([
+        {
+          id: '1',
+          name: 'Rajesh Shrestha',
+          role: 'Homeowner, Kamalpokhari',
+          content: 'Excellent service! The plumber arrived on time and fixed the issue quickly. Very professional and reasonably priced. Highly recommend Hamro Service!',
+          rating: 5,
+          service: 'Plumbing Repair',
+          createdAt: new Date().toISOString(),
+        },
+        {
+          id: '2',
+          name: 'Sita Maharjan',
+          role: 'Business Owner, Dillibazar',
+          content: 'I\'ve used Hamro Service multiple times for cleaning and electrical work. Always reliable and the quality is top-notch. The booking process is so convenient!',
+          rating: 5,
+          service: 'Cleaning & Electrical',
+          createdAt: new Date().toISOString(),
+        },
+        {
+          id: '3',
+          name: 'Amit Kumar',
+          role: 'Property Manager, Boudha',
+          content: 'Great platform for finding trusted professionals. The booking process is simple and the service providers are skilled. Perfect for managing multiple properties.',
+          rating: 5,
+          service: 'Multiple Services',
+          createdAt: new Date().toISOString(),
+        },
+      ]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <section className="bg-gradient-to-b from-gray-50 to-white py-16 md:py-24">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12 md:mb-16">
+            <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-[#0A2640] mb-4">
+              What Our <span className="text-[#69E6A6]">Customers</span> Say
+            </h2>
+            <p className="text-gray-600 text-lg md:text-xl max-w-3xl mx-auto">
+              Don't just take our word for it. Here's what our satisfied customers across Nepal have to say about their experience.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="rounded-2xl bg-white p-8 border border-gray-200 animate-pulse">
+                <div className="h-4 bg-gray-200 rounded mb-4"></div>
+                <div className="h-20 bg-gray-200 rounded mb-6"></div>
+                <div className="h-4 bg-gray-200 rounded w-2/3"></div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+    );
+  }
   return (
     <section className="bg-gradient-to-b from-gray-50 to-white py-16 md:py-24">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -36,9 +94,15 @@ export function Testimonials() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
-          {testimonials.map((testimonial, index) => (
+          {testimonials.length === 0 ? (
+            <div className="col-span-3 text-center py-12">
+              <p className="text-gray-600 text-lg">No testimonials available yet.</p>
+              <p className="text-gray-500 text-sm mt-2">Be the first to share your experience!</p>
+            </div>
+          ) : (
+            testimonials.map((testimonial) => (
             <div
-              key={index}
+              key={testimonial.id}
               className="group relative rounded-2xl bg-white p-8 border border-gray-200 hover:border-[#69E6A6]/50 shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2"
             >
               {/* Gradient border effect on hover */}
@@ -73,17 +137,20 @@ export function Testimonials() {
                 <div className="flex items-center justify-between mb-2">
                   <div>
                     <p className="font-bold text-[#0A2640] text-lg">{testimonial.name}</p>
-                    <p className="text-sm text-gray-500">{testimonial.role}</p>
+                    <p className="text-sm text-gray-500">{testimonial.role || 'Customer'}</p>
                   </div>
                 </div>
-                <div className="mt-3">
-                  <span className="inline-block px-3 py-1 rounded-full bg-[#69E6A6]/10 text-[#69E6A6] text-xs font-semibold">
-                    {testimonial.service}
-                  </span>
-                </div>
+                {testimonial.service && (
+                  <div className="mt-3">
+                    <span className="inline-block px-3 py-1 rounded-full bg-[#69E6A6]/10 text-[#69E6A6] text-xs font-semibold">
+                      {/* {testimonial.service} */}
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
-          ))}
+            ))
+          )}
         </div>
       </div>
     </section>

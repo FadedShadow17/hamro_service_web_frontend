@@ -122,7 +122,7 @@ export function PaymentModal({ isOpen, onClose, booking, onSuccess }: PaymentMod
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
               </div>
-              <h3 className="text-2xl font-bold text-white mb-2">Payment Confirmed!</h3>
+              <h3 className="text-2xl font-bold text-white mb-2">Payment Successful!</h3>
               <p className="text-white/70">Your payment has been processed successfully.</p>
             </div>
           ) : (

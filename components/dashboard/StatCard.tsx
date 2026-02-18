@@ -10,6 +10,7 @@ interface StatCardProps {
   onClick?: () => void;
   progress?: number; // 0-100 for progress bar
   className?: string;
+  badge?: { text: string; color: 'yellow' | 'red' | 'blue' | 'green' };
 }
 
 const colorClasses = {
@@ -74,6 +75,7 @@ export function StatCard({
   onClick,
   progress,
   className = '',
+  badge,
 }: StatCardProps) {
   const colors = colorClasses[color];
   const isClickable = href || onClick;
@@ -103,15 +105,27 @@ export function StatCard({
           )}
         </div>
         <div className="space-y-1">
-          <h3 className={`text-white font-bold text-3xl mb-1 transition-colors ${
-            color === 'green' ? 'group-hover:text-[#69E6A6]' :
-            color === 'blue' ? 'group-hover:text-[#4A9EFF]' :
-            color === 'orange' ? 'group-hover:text-[#FFA500]' :
-            color === 'purple' ? 'group-hover:text-[#9B59B6]' :
-            'group-hover:text-yellow-400'
-          }`}>
-            {value}
-          </h3>
+          <div className="flex items-center gap-2">
+            <h3 className={`text-white font-bold text-3xl mb-1 transition-colors ${
+              color === 'green' ? 'group-hover:text-[#69E6A6]' :
+              color === 'blue' ? 'group-hover:text-[#4A9EFF]' :
+              color === 'orange' ? 'group-hover:text-[#FFA500]' :
+              color === 'purple' ? 'group-hover:text-[#9B59B6]' :
+              'group-hover:text-yellow-400'
+            }`}>
+              {value}
+            </h3>
+            {badge && (
+              <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${
+                badge.color === 'yellow' ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/50' :
+                badge.color === 'red' ? 'bg-red-500/20 text-red-400 border border-red-500/50' :
+                badge.color === 'blue' ? 'bg-blue-500/20 text-blue-400 border border-blue-500/50' :
+                'bg-[#69E6A6]/20 text-[#69E6A6] border border-[#69E6A6]/50'
+              }`}>
+                {badge.text}
+              </span>
+            )}
+          </div>
           <p className="text-white/80 text-sm font-medium">{label}</p>
           {progress !== undefined && (
             <div className="h-1 w-full bg-white/10 rounded-full overflow-hidden mt-2">

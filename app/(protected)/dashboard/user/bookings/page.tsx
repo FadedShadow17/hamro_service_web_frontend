@@ -7,6 +7,7 @@ import { RouteGuard } from '@/components/auth/RouteGuard';
 import { getMyBookings, cancelBooking, type Booking, type BookingStatus } from '@/lib/api/bookings.api';
 import { HttpError } from '@/lib/api/http';
 import { useToastContext } from '@/providers/ToastProvider';
+import { PaymentModal } from '@/components/payments/PaymentModal';
 
 export default function UserBookingsPage() {
   const router = useRouter();
@@ -18,6 +19,8 @@ export default function UserBookingsPage() {
   const [filter, setFilter] = useState<BookingStatus | 'ALL'>('ALL');
   const [mounted, setMounted] = useState(false);
   const [cancellingBookingId, setCancellingBookingId] = useState<string | null>(null);
+  const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -118,6 +121,20 @@ export default function UserBookingsPage() {
     } finally {
       setCancellingBookingId(null);
     }
+  };
+
+  const handlePaymentClick = (booking: Booking) => {
+    setSelectedBooking(booking);
+    setIsPaymentModalOpen(true);
+  };
+
+  const handlePaymentSuccess = async () => {
+    await loadBookings(); // Refetch to update UI immediately
+  };
+
+  const handlePaymentModalClose = () => {
+    setIsPaymentModalOpen(false);
+    setSelectedBooking(null);
   };
 
   const getStatusColor = (status: BookingStatus) => {
@@ -245,11 +262,21 @@ export default function UserBookingsPage() {
                               </div>
                             )}
                             {booking.status === 'CONFIRMED' && (
-                              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-blue-500/10 border border-blue-500/30">
-                                <svg className="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
-                                <span className="text-blue-400 text-sm font-medium">Accepted by provider</span>
+                              <div className="flex flex-col gap-2">
+                                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-blue-500/10 border border-blue-500/30">
+                                  <svg className="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                  </svg>
+                                  <span className="text-blue-400 text-sm font-medium">Accepted by provider</span>
+                                </div>
+                                {booking.paymentStatus !== 'PAID' && (
+                                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-yellow-500/10 border border-yellow-500/30">
+                                    <svg className="w-4 h-4 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                                    </svg>
+                                    <span className="text-yellow-400 text-sm font-medium">Payment pending</span>
+                                  </div>
+                                )}
                               </div>
                             )}
                             {booking.status === 'DECLINED' && (
@@ -373,6 +400,23 @@ export default function UserBookingsPage() {
                       </div>
 
                       <div className="flex flex-col sm:flex-row gap-2">
+                        {booking.status === 'CONFIRMED' && booking.paymentStatus !== 'PAID' && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              handlePaymentClick(booking);
+                            }}
+                            disabled={loading}
+                            className="px-6 py-3 bg-[#69E6A6] hover:bg-[#5dd195] text-[#0A2640] rounded-lg font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl flex items-center justify-center gap-2"
+                          >
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                            </svg>
+                            Pay Now
+                          </button>
+                        )}
                         {(booking.status === 'PENDING' || booking.status === 'CONFIRMED') && (
                           <button
                             type="button"
@@ -401,6 +445,16 @@ export default function UserBookingsPage() {
           </div>
         </div>
       </div>
+
+      {/* Payment Modal */}
+      {selectedBooking && (
+        <PaymentModal
+          isOpen={isPaymentModalOpen}
+          onClose={handlePaymentModalClose}
+          booking={selectedBooking}
+          onSuccess={handlePaymentSuccess}
+        />
+      )}
     </RouteGuard>
   );
 }
