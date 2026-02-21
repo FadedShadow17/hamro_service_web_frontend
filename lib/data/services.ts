@@ -20,7 +20,7 @@ export const services: Service[] = [
     shortDescription: 'Expert plumbers for repairs, installations, and maintenance',
     longDescription: 'Our certified plumbers provide comprehensive plumbing services including leak repairs, pipe installations, drain cleaning, water heater services, and emergency plumbing solutions. Available 24/7 for urgent issues.',
     icon: '🔧',
-    startingPrice: 1500,
+    startingPrice: 5000,
     duration: '1-3 hours',
     features: [
       'Leak detection and repair',
@@ -40,7 +40,7 @@ export const services: Service[] = [
     shortDescription: 'Licensed electricians for all your electrical needs',
     longDescription: 'Professional electrical services by licensed electricians. We handle wiring, circuit installation, electrical panel upgrades, lighting installation, and all electrical repairs. Safety certified and insured.',
     icon: '⚡',
-    startingPrice: 2000,
+    startingPrice: 5000,
     duration: '2-4 hours',
     features: [
       'Electrical wiring and rewiring',
@@ -60,7 +60,7 @@ export const services: Service[] = [
     shortDescription: 'Professional cleaning services for your home',
     longDescription: 'Comprehensive cleaning services including deep cleaning, regular maintenance cleaning, move-in/move-out cleaning, and specialized cleaning for kitchens and bathrooms. Eco-friendly products available.',
     icon: '🧹',
-    startingPrice: 1200,
+    startingPrice: 5000,
     duration: '2-5 hours',
     features: [
       'Deep cleaning services',
@@ -80,7 +80,7 @@ export const services: Service[] = [
     shortDescription: 'Skilled carpenters for custom furniture and repairs',
     longDescription: 'Expert carpentry services for custom furniture, cabinet installation, door and window repairs, deck building, and all woodworking needs. Quality craftsmanship guaranteed.',
     icon: '🪚',
-    startingPrice: 2500,
+    startingPrice: 5000,
     duration: '3-6 hours',
     features: [
       'Custom furniture making',
@@ -100,7 +100,7 @@ export const services: Service[] = [
     shortDescription: 'Interior and exterior painting services',
     longDescription: 'Professional painting services for both interior and exterior surfaces. We provide color consultation, surface preparation, primer application, and high-quality paint finishes.',
     icon: '🎨',
-    startingPrice: 3000,
+    startingPrice: 5000,
     duration: '1-3 days',
     features: [
       'Interior painting',
@@ -120,7 +120,7 @@ export const services: Service[] = [
     shortDescription: 'Heating, ventilation, and air conditioning services',
     longDescription: 'Complete HVAC services including installation, repair, maintenance, and air quality solutions. We service all major brands and provide energy-efficient solutions.',
     icon: '❄️',
-    startingPrice: 3500,
+    startingPrice: 5000,
     duration: '2-5 hours',
     features: [
       'AC installation and repair',
@@ -140,7 +140,7 @@ export const services: Service[] = [
     shortDescription: 'Expert repair for all home appliances',
     longDescription: 'Professional appliance repair services for refrigerators, washing machines, dryers, ovens, dishwashers, and more. Same-day service available for most repairs.',
     icon: '🔌',
-    startingPrice: 1800,
+    startingPrice: 5000,
     duration: '1-2 hours',
     features: [
       'Refrigerator repair',
@@ -160,7 +160,7 @@ export const services: Service[] = [
     shortDescription: 'Transform your outdoor space',
     longDescription: 'Complete gardening and landscaping services including lawn care, tree planting, garden design, irrigation installation, and regular maintenance. Create your dream outdoor space.',
     icon: '🌳',
-    startingPrice: 2000,
+    startingPrice: 5000,
     duration: '2-4 hours',
     features: [
       'Lawn care and maintenance',

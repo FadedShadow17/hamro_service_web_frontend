@@ -169,20 +169,18 @@ export default function ProviderDashboardPage() {
   const getVerificationBadge = () => {
     if (!verificationStatus) return null;
     const badges: Record<string, { text: string; color: string; icon: string }> = {
-      NOT_SUBMITTED: { text: 'Not Verified', color: 'bg-gray-500/20 text-gray-400 border-gray-500/50', icon: '⚠️' },
-      PENDING_REVIEW: { text: 'Pending Review', color: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/50', icon: '⏳' },
-      APPROVED: { text: 'Verified', color: 'bg-[#69E6A6]/20 text-[#69E6A6] border-[#69E6A6]/50', icon: '✅' },
-      REJECTED: { text: 'Rejected', color: 'bg-red-500/20 text-red-400 border-red-500/50', icon: '❌' },
+      pending: { text: 'Pending Review', color: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/50', icon: '⏳' },
+      verified: { text: 'Verified', color: 'bg-[#69E6A6]/20 text-[#69E6A6] border-[#69E6A6]/50', icon: '✅' },
     };
     const badge = badges[verificationStatus];
     if (!badge) return null;
     return (
       <div className="flex items-center gap-3">
-        <span className={`px-4 py-2 rounded-full text-sm font-semibold border flex items-center gap-2 transition-all duration-300 ${badge.color} ${verificationStatus === 'APPROVED' ? 'shadow-lg shadow-[#69E6A6]/20' : ''}`}>
+        <span className={`px-4 py-2 rounded-full text-sm font-semibold border flex items-center gap-2 transition-all duration-300 ${badge.color} ${verificationStatus === 'verified' ? 'shadow-lg shadow-[#69E6A6]/20' : ''}`}>
           <span>{badge.icon}</span>
           <span>{badge.text}</span>
         </span>
-        {verificationStatus === 'APPROVED' && (
+        {verificationStatus === 'verified' && (
           <span className="text-[#69E6A6] text-sm font-medium">Ready to accept requests</span>
         )}
       </div>
@@ -212,33 +210,18 @@ export default function ProviderDashboardPage() {
                 </div>
                 {getVerificationBadge()}
               </div>
-              {verificationStatus && verificationStatus !== 'APPROVED' && (
+              {verificationStatus && verificationStatus === 'pending' && (
                 <div className="mt-4 p-4 rounded-xl bg-yellow-500/10 border border-yellow-500/30 flex items-start gap-3">
                   <svg className="w-5 h-5 text-yellow-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                   <div className="flex-1">
                     <p className="text-yellow-400 font-semibold text-sm mb-1">
-                      {verificationStatus === 'NOT_SUBMITTED' ? 'Complete Your Verification' : 
-                       verificationStatus === 'PENDING_REVIEW' ? 'Verification Under Review' :
-                       'Verification Rejected'}
+                      Verification Under Review
                     </p>
                     <p className="text-yellow-300/80 text-xs">
-                      {verificationStatus === 'NOT_SUBMITTED' ? 'Submit your verification documents to start accepting bookings.' :
-                       verificationStatus === 'PENDING_REVIEW' ? 'Your verification is being reviewed. You can still view bookings.' :
-                       'Please update your verification information to continue accepting bookings.'}
+                      Your verification is being processed by admin.
                     </p>
-                    {verificationStatus !== 'PENDING_REVIEW' && (
-                      <Link 
-                        href="/dashboard/provider/verification"
-                        className="inline-flex items-center gap-1 mt-2 text-yellow-400 hover:text-yellow-300 text-xs font-semibold transition-colors"
-                      >
-                        <span>Go to Verification</span>
-                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                        </svg>
-                      </Link>
-                    )}
                   </div>
                 </div>
               )}
@@ -335,7 +318,7 @@ export default function ProviderDashboardPage() {
                       </div>
                     </Link>
 
-                    {verificationStatus !== 'APPROVED' ? (
+                    {verificationStatus !== 'verified' ? (
                       <Link
                         href="/dashboard/provider/verification"
                         className="group rounded-2xl bg-gradient-to-br from-yellow-500/10 to-yellow-500/5 p-6 border border-yellow-500/30 hover:border-yellow-500/50 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:shadow-yellow-500/10"

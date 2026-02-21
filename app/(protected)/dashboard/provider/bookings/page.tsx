@@ -48,9 +48,14 @@ export default function ProviderBookingsPage() {
         try {
           const verification = await getVerificationStatus();
           setProviderVerification(verification);
+          // Block access if not verified
+          if (verification.verificationStatus !== 'verified') {
+            setIsProviderProfileMissing(true);
+          }
         } catch (err) {
           // Verification might not exist yet, that's okay
           console.info('Verification status not available:', err);
+          setIsProviderProfileMissing(true);
         }
         await loadBookings();
       } catch (err) {
@@ -417,9 +422,15 @@ export default function ProviderBookingsPage() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                 </div>
-                <h3 className="text-xl font-bold text-white mb-2">Complete Your Verification</h3>
+                <h3 className="text-xl font-bold text-white mb-2">
+                  {providerVerification?.verificationStatus === 'pending' 
+                    ? 'Verification Under Review' 
+                    : 'Complete Your Verification'}
+                </h3>
                 <p className="text-white/70 mb-6 max-w-md mx-auto">
-                  Fill out your verification form to start receiving and accepting service bookings from users.
+                  {providerVerification?.verificationStatus === 'pending'
+                    ? 'Your verification is being processed by admin. Once approved, you can view and accept bookings.'
+                    : 'Fill out your verification form to start receiving and accepting service bookings from users.'}
                 </p>
                 <button
                   onClick={() => router.push('/dashboard/provider/verification')}

@@ -1,6 +1,6 @@
 import { http, HttpError } from './http';
 
-export type VerificationStatus = 'NOT_SUBMITTED' | 'PENDING_REVIEW' | 'APPROVED' | 'REJECTED';
+export type VerificationStatus = 'not_submitted' | 'pending' | 'verified';
 
 export interface VerificationData {
   verificationStatus: VerificationStatus;
@@ -76,7 +76,7 @@ export async function getVerificationSummary(): Promise<VerificationSummary> {
     if (error instanceof HttpError) {
       // If 404 or not provider, return default values
       if (error.status === 404 || error.status === 403) {
-        return { status: 'NOT_SUBMITTED', role: null };
+        return { status: 'not_submitted', role: null };
       }
       throw error;
     }

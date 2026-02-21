@@ -50,6 +50,12 @@ export interface CreateBookingDTO {
   area: string;
 }
 
+export interface UpdateBookingDTO {
+  date?: string;
+  timeSlot?: string;
+  area?: string;
+}
+
 export async function createBooking(data: CreateBookingDTO): Promise<Booking> {
   try {
     const response = await http<{ message: string; booking: Booking }>('/api/bookings', {
@@ -144,6 +150,31 @@ export async function updateProviderBookingStatus(
       throw error;
     }
     throw new HttpError(500, 'Failed to update booking status');
+  }
+}
+
+/**
+ * Update booking (date, timeSlot, area)
+ * PATCH /api/bookings/:id
+ */
+export async function updateBooking(
+  bookingId: string,
+  data: UpdateBookingDTO
+): Promise<Booking> {
+  try {
+    const response = await http<{ message: string; booking: Booking }>(
+      `/api/bookings/${bookingId}`,
+      {
+        method: 'PATCH',
+        body: data,
+      }
+    );
+    return response.booking;
+  } catch (error) {
+    if (error instanceof HttpError) {
+      throw error;
+    }
+    throw new HttpError(500, 'Failed to update booking');
   }
 }
 

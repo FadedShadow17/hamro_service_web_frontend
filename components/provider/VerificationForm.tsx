@@ -80,10 +80,10 @@ export function VerificationForm({ onSuccess }: VerificationFormProps) {
         });
       }
     } catch (err) {
-      // Silently handle errors - no profile means NOT_SUBMITTED, which is fine
-      // Just set status to NOT_SUBMITTED so form can be shown
+      // Silently handle errors - no profile means not_submitted, which is fine
+      // Just set status to not_submitted so form can be shown
       setVerificationStatus({
-        verificationStatus: 'NOT_SUBMITTED',
+        verificationStatus: 'not_submitted',
       });
     } finally {
       setLoadingStatus(false);
@@ -173,11 +173,10 @@ export function VerificationForm({ onSuccess }: VerificationFormProps) {
   }
 
   // Show status if already submitted
-  if (verificationStatus && verificationStatus.verificationStatus !== 'NOT_SUBMITTED') {
+  if (verificationStatus && verificationStatus.verificationStatus !== 'not_submitted') {
     const statusColors: Record<string, string> = {
-      PENDING_REVIEW: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/50',
-      APPROVED: 'bg-[#69E6A6]/20 text-[#69E6A6] border-[#69E6A6]/50',
-      REJECTED: 'bg-red-500/20 text-red-400 border-red-500/50',
+      pending: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/50',
+      verified: 'bg-[#69E6A6]/20 text-[#69E6A6] border-[#69E6A6]/50',
     };
 
     return (
